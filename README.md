@@ -12,3 +12,7 @@ npm run build
 ```
 
 Open `index.html` in a browser to play.
+
+## GitHub Pages
+
+This repository includes a workflow that automatically builds the TypeScript code and publishes the game to the `gh-pages` branch. Once GitHub Pages is enabled for that branch, the game will be available online. After pushing to `main`, visit the repository settings on GitHub and enable GitHub Pages using the `gh-pages` branch as the source.
