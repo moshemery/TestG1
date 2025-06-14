@@ -4,6 +4,12 @@ const ctx = canvas.getContext('2d')!;
 const canvasWidth = canvas.width = window.innerWidth;
 const canvasHeight = canvas.height = window.innerHeight;
 
+const friendImage = new Image();
+friendImage.src = 'resources/friend.png';
+
+const enemyImage = new Image();
+enemyImage.src = 'resources/enemy.png';
+
 class Spaceship {
   width = 40;
   height = 60;
@@ -20,13 +26,7 @@ class Spaceship {
   }
 
   draw() {
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.moveTo(this.x + this.width / 2, this.y);
-    ctx.lineTo(this.x, this.y + this.height);
-    ctx.lineTo(this.x + this.width, this.y + this.height);
-    ctx.closePath();
-    ctx.fill();
+    ctx.drawImage(friendImage, this.x, this.y, this.width, this.height);
   }
 }
 
@@ -65,8 +65,8 @@ for (let i = 0; i < 100; i++) {
 }
 
 function spawnObstacle() {
-  const width = 30;
-  const height = 30;
+  const width = 40;
+  const height = 40;
   const x = Math.random() * (canvasWidth - width);
   const speed = 4 + Math.random() * 2;
   obstacles.push({ x, y: -height, width, height, speed });
@@ -163,9 +163,8 @@ function draw() {
     ctx.fillRect(m.x, m.y, m.width, m.height);
   });
 
-  ctx.fillStyle = 'red';
   obstacles.forEach(o => {
-    ctx.fillRect(o.x, o.y, o.width, o.height);
+    ctx.drawImage(enemyImage, o.x, o.y, o.width, o.height);
   });
 
   if (gameOver) {
