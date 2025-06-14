@@ -1,4 +1,5 @@
 const canvas = document.getElementById('game') as HTMLCanvasElement;
+const restartButton = document.getElementById('restart') as HTMLButtonElement;
 const ctx = canvas.getContext('2d')!;
 
 const canvasWidth = canvas.width = window.innerWidth;
@@ -55,6 +56,18 @@ interface Missile {
 }
 const missiles: Missile[] = [];
 let gameOver = false;
+
+function resetGame() {
+  obstacles.length = 0;
+  missiles.length = 0;
+  stars.splice(0, stars.length);
+  for (let i = 0; i < 100; i++) {
+    stars.push(createStar());
+  }
+  spaceship.x = canvasWidth / 2 - spaceship.width / 2;
+  gameOver = false;
+  restartButton.style.display = 'none';
+}
 
 function createStar() {
   return {
@@ -135,6 +148,7 @@ function checkCollisions() {
       explosionSound.currentTime = 0;
       explosionSound.play();
       gameOver = true;
+      restartButton.style.display = 'block';
     }
   });
 
@@ -206,5 +220,25 @@ window.addEventListener('touchstart', e => {
   const touch = e.touches[0];
   if (touch.clientX < canvasWidth / 2) spaceship.moveLeft();
   else spaceship.moveRight();
+});
+
+window.addEventListener('click', () => {
+  if (gameOver) return;
+  fireMissile();
+});
+
+window.addEventListener('deviceorientation', e => {
+  if (gameOver) return;
+  if (e.gamma == null) return;
+  const threshold = 10;
+  if (e.gamma > threshold) {
+    spaceship.moveRight();
+  } else if (e.gamma < -threshold) {
+    spaceship.moveLeft();
+  }
+});
+
+restartButton.addEventListener('click', () => {
+  resetGame();
 });
 
