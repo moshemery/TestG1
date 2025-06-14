@@ -56,6 +56,10 @@ interface Missile {
 }
 const missiles: Missile[] = [];
 let gameOver = false;
+let paused = false;
+let score = 0;
+let lives = 3;
+let nextLifeScore = 10;
 
 function resetGame() {
   obstacles.length = 0;
@@ -66,6 +70,10 @@ function resetGame() {
   }
   spaceship.x = canvasWidth / 2 - spaceship.width / 2;
   gameOver = false;
+  paused = false;
+  score = 0;
+  lives = 3;
+  nextLifeScore = 10;
   restartButton.style.display = 'none';
 }
 
@@ -102,7 +110,7 @@ function fireMissile() {
 }
 
 function update() {
-  if (gameOver) return;
+  if (gameOver || paused) return;
   if (Math.random() < 0.02) {
     spawnObstacle();
   }
@@ -138,7 +146,8 @@ function update() {
 }
 
 function checkCollisions() {
-  obstacles.forEach(o => {
+  for (let oi = obstacles.length - 1; oi >= 0; oi--) {
+    const o = obstacles[oi];
     const collide =
       spaceship.x < o.x + o.width &&
       spaceship.x + spaceship.width > o.x &&
@@ -147,10 +156,17 @@ function checkCollisions() {
     if (collide) {
       explosionSound.currentTime = 0;
       explosionSound.play();
-      gameOver = true;
-      restartButton.style.display = 'block';
+      obstacles.splice(oi, 1);
+      lives--;
+      if (lives <= 0) {
+        gameOver = true;
+        restartButton.style.display = 'block';
+      } else {
+        spaceship.x = canvasWidth / 2 - spaceship.width / 2;
+      }
+      break;
     }
-  });
+  }
 
   for (let mi = missiles.length - 1; mi >= 0; mi--) {
     const m = missiles[mi];
@@ -166,6 +182,11 @@ function checkCollisions() {
         hitSound.play();
         obstacles.splice(oi, 1);
         missiles.splice(mi, 1);
+        score++;
+        if (score >= nextLifeScore) {
+          lives++;
+          nextLifeScore += 10;
+        }
         break;
       }
     }
@@ -192,6 +213,17 @@ function draw() {
     ctx.drawImage(enemyImage, o.x, o.y, o.width, o.height);
   });
 
+  ctx.fillStyle = 'white';
+  ctx.font = '24px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(`Score: ${score} Lives: ${lives}`, canvasWidth - 20, 30);
+
+  if (paused && !gameOver) {
+    ctx.font = '48px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Paused', canvasWidth / 2, canvasHeight / 2);
+  }
+
   if (gameOver) {
     ctx.fillStyle = 'white';
     ctx.font = '48px sans-serif';
@@ -210,25 +242,35 @@ loop();
 
 window.addEventListener('keydown', e => {
   if (gameOver) return;
+  if (e.key === 'Enter') {
+    paused = !paused;
+    return;
+  }
+  if (paused) return;
   if (e.key === 'ArrowLeft') spaceship.moveLeft();
   if (e.key === 'ArrowRight') spaceship.moveRight();
   if (e.code === 'Space') fireMissile();
 });
 
 window.addEventListener('touchstart', e => {
-  if (gameOver) return;
+  if (gameOver || paused) return;
   const touch = e.touches[0];
   if (touch.clientX < canvasWidth / 2) spaceship.moveLeft();
   else spaceship.moveRight();
 });
 
 window.addEventListener('click', () => {
-  if (gameOver) return;
+  if (gameOver || paused) return;
   fireMissile();
 });
 
-window.addEventListener('deviceorientation', e => {
+window.addEventListener('dblclick', () => {
   if (gameOver) return;
+  paused = !paused;
+});
+
+window.addEventListener('deviceorientation', e => {
+  if (gameOver || paused) return;
   if (e.gamma == null) return;
   const threshold = 10;
   if (e.gamma > threshold) {
