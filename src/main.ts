@@ -274,10 +274,6 @@ window.addEventListener('click', () => {
   fireMissile();
 });
 
-window.addEventListener('dblclick', () => {
-  if (gameOver) return;
-  paused = !paused;
-});
 
 window.addEventListener('deviceorientation', e => {
   if (gameOver || paused) return;
