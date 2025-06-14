@@ -18,7 +18,7 @@ class Spaceship {
         this.height = 60;
         this.x = canvasWidth / 2 - this.width / 2;
         this.y = canvasHeight - this.height - 10;
-        this.speed = 7;
+        this.speed = 9; // increased by ~30% for faster web play
     }
     moveLeft() {
         this.x = Math.max(0, this.x - this.speed);
@@ -39,6 +39,7 @@ let paused = false;
 let score = 0;
 let lives = 3;
 let nextLifeScore = 10;
+let slideHandled = false; // track slide gesture for pausing on mobile
 function resetGame() {
     obstacles.length = 0;
     missiles.length = 0;
@@ -214,11 +215,20 @@ window.addEventListener('keydown', e => {
 window.addEventListener('touchstart', e => {
     if (gameOver || paused)
         return;
+    slideHandled = false;
     const touch = e.touches[0];
     if (touch.clientX < canvasWidth / 2)
         spaceship.moveLeft();
     else
         spaceship.moveRight();
+});
+window.addEventListener('touchmove', () => {
+    if (gameOver)
+        return;
+    if (!slideHandled) {
+        paused = !paused;
+        slideHandled = true;
+    }
 });
 window.addEventListener('click', () => {
     if (gameOver || paused)
