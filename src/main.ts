@@ -11,6 +11,9 @@ friendImage.src = 'resources/friend.png';
 const enemyImage = new Image();
 enemyImage.src = 'resources/enemy.png';
 
+const bossImage = new Image();
+bossImage.src = 'resources/boss.png';
+
 // Load sound effects
 const explosionSound = new Audio('resources/explosion-80108.mp3');
 const laserSound = new Audio('resources/laser-zap-90575.mp3');
@@ -42,6 +45,7 @@ interface Obstacle {
   width: number;
   height: number;
   speed: number;
+  isBoss: boolean;
 }
 
 const spaceship = new Spaceship();
@@ -62,6 +66,11 @@ let lives = 3;
 let nextLifeScore = 10;
 let slideHandled = false; // track slide gesture for pausing on mobile
 
+function randomBossInterval() {
+  return Math.floor(Math.random() * 11) + 20;
+}
+let spawnsUntilBoss = randomBossInterval();
+
 function resetGame() {
   obstacles.length = 0;
   missiles.length = 0;
@@ -75,6 +84,7 @@ function resetGame() {
   score = 0;
   lives = 3;
   nextLifeScore = 10;
+  spawnsUntilBoss = randomBossInterval();
   restartButton.style.display = 'none';
 }
 
@@ -96,7 +106,12 @@ function spawnObstacle() {
   const height = 40;
   const x = Math.random() * (canvasWidth - width);
   const speed = 4 + Math.random() * 2;
-  obstacles.push({ x, y: -height, width, height, speed });
+  spawnsUntilBoss--;
+  const isBoss = spawnsUntilBoss <= 0;
+  if (isBoss) {
+    spawnsUntilBoss = randomBossInterval();
+  }
+  obstacles.push({ x, y: -height, width, height, speed, isBoss });
 }
 
 function fireMissile() {
@@ -183,7 +198,7 @@ function checkCollisions() {
         hitSound.play();
         obstacles.splice(oi, 1);
         missiles.splice(mi, 1);
-        score++;
+        score += 1 + (o.isBoss ? 10 : 0);
         if (score >= nextLifeScore) {
           lives++;
           nextLifeScore += 10;
@@ -211,7 +226,7 @@ function draw() {
   });
 
   obstacles.forEach(o => {
-    ctx.drawImage(enemyImage, o.x, o.y, o.width, o.height);
+    ctx.drawImage(o.isBoss ? bossImage : enemyImage, o.x, o.y, o.width, o.height);
   });
 
   ctx.fillStyle = 'white';
