@@ -10,8 +10,10 @@ friendImage.src = 'resources/friend.png';
 const enemyImage = new Image();
 enemyImage.src = 'resources/enemy.png';
 
-// Load explosion sound effect
+// Load sound effects
 const explosionSound = new Audio('resources/explosion-80108.mp3');
+const laserSound = new Audio('resources/laser-zap-90575.mp3');
+const hitSound = new Audio('resources/explosion-322491.mp3');
 
 class Spaceship {
   width = 40;
@@ -82,6 +84,8 @@ function fireMissile() {
   const y = spaceship.y - height;
   const speed = 10;
   missiles.push({ x, y, width, height, speed });
+  laserSound.currentTime = 0;
+  laserSound.play();
 }
 
 function update() {
@@ -144,6 +148,8 @@ function checkCollisions() {
         m.y < o.y + o.height &&
         m.y + m.height > o.y;
       if (hit) {
+        hitSound.currentTime = 0;
+        hitSound.play();
         obstacles.splice(oi, 1);
         missiles.splice(mi, 1);
         break;
