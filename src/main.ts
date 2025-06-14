@@ -10,6 +10,9 @@ friendImage.src = 'resources/friend.png';
 const enemyImage = new Image();
 enemyImage.src = 'resources/enemy.png';
 
+// Load explosion sound effect
+const explosionSound = new Audio('resources/explosion-80108.mp3');
+
 class Spaceship {
   width = 40;
   height = 60;
@@ -125,6 +128,8 @@ function checkCollisions() {
       spaceship.y < o.y + o.height &&
       spaceship.y + spaceship.height > o.y;
     if (collide) {
+      explosionSound.currentTime = 0;
+      explosionSound.play();
       gameOver = true;
     }
   });
