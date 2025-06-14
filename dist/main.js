@@ -30,6 +30,7 @@ class Spaceship {
 const spaceship = new Spaceship();
 const obstacles = [];
 const stars = [];
+const missiles = [];
 let gameOver = false;
 function createStar() {
     return {
@@ -49,6 +50,14 @@ function spawnObstacle() {
     const speed = 4 + Math.random() * 2;
     obstacles.push({ x, y: -height, width, height, speed });
 }
+function fireMissile() {
+    const width = 5;
+    const height = 10;
+    const x = spaceship.x + spaceship.width / 2 - width / 2;
+    const y = spaceship.y - height;
+    const speed = 10;
+    missiles.push({ x, y, width, height, speed });
+}
 function update() {
     if (gameOver)
         return;
@@ -58,6 +67,19 @@ function update() {
     obstacles.forEach(o => {
         o.y += o.speed;
     });
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        if (o.y > canvasHeight + o.height) {
+            obstacles.splice(i, 1);
+        }
+    }
+    for (let i = missiles.length - 1; i >= 0; i--) {
+        const m = missiles[i];
+        m.y -= m.speed;
+        if (m.y + m.height < 0) {
+            missiles.splice(i, 1);
+        }
+    }
     stars.forEach(s => {
         s.y += s.speed;
         if (s.y > canvasHeight) {
@@ -66,7 +88,6 @@ function update() {
         }
     });
     checkCollisions();
-    obstacles.filter(o => o.y < canvasHeight + o.height);
 }
 function checkCollisions() {
     obstacles.forEach(o => {
@@ -78,6 +99,21 @@ function checkCollisions() {
             gameOver = true;
         }
     });
+    for (let mi = missiles.length - 1; mi >= 0; mi--) {
+        const m = missiles[mi];
+        for (let oi = obstacles.length - 1; oi >= 0; oi--) {
+            const o = obstacles[oi];
+            const hit = m.x < o.x + o.width &&
+                m.x + m.width > o.x &&
+                m.y < o.y + o.height &&
+                m.y + m.height > o.y;
+            if (hit) {
+                obstacles.splice(oi, 1);
+                missiles.splice(mi, 1);
+                break;
+            }
+        }
+    }
 }
 function draw() {
     ctx.fillStyle = 'black';
@@ -87,6 +123,10 @@ function draw() {
         ctx.fillRect(s.x, s.y, s.size, s.size);
     });
     spaceship.draw();
+    ctx.fillStyle = 'yellow';
+    missiles.forEach(m => {
+        ctx.fillRect(m.x, m.y, m.width, m.height);
+    });
     ctx.fillStyle = 'red';
     obstacles.forEach(o => {
         ctx.fillRect(o.x, o.y, o.width, o.height);
@@ -111,6 +151,8 @@ window.addEventListener('keydown', e => {
         spaceship.moveLeft();
     if (e.key === 'ArrowRight')
         spaceship.moveRight();
+    if (e.code === 'Space')
+        fireMissile();
 });
 window.addEventListener('touchstart', e => {
     if (gameOver)
