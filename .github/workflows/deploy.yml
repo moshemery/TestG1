@@ -25,6 +25,7 @@ jobs:
           mkdir public
           cp index.html public/index.html
           cp -r dist public/dist
+          cp -r resources public/resources
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
