@@ -16,7 +16,7 @@ Open `index.html` in a browser to play.
 ## Controls
 
 - **Desktop:** Use the left and right arrow keys to move and space bar to fire. Press **Enter** to pause or resume.
-- **Mobile:** Tilt your device left or right to steer the ship and tap the screen to shoot. Double tap anywhere to pause or resume.
+- **Mobile:** Tilt your device left or right to steer the ship and tap the screen to shoot. Slide your finger across the screen to pause or resume.
 - Destroy enemies to earn points. You start with three lives and gain an extra life every ten points. When all lives are lost, hit the Restart button to play again.
 
 ## GitHub Pages
