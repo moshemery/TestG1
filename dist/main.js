@@ -41,6 +41,9 @@ let paused = false;
 let score = 0;
 let lives = 3;
 let nextLifeScore = 10;
+let shipPieces = [];
+let explosionTimer = 0;
+let freezeEnvironment = false;
 function randomBossInterval() {
     return Math.floor(Math.random() * 11) + 20;
 }
@@ -48,6 +51,8 @@ let spawnsUntilBoss = randomBossInterval();
 function resetGame() {
     obstacles.length = 0;
     missiles.length = 0;
+    shipPieces.length = 0;
+    freezeEnvironment = false;
     stars.splice(0, stars.length);
     for (let i = 0; i < 100; i++) {
         stars.push(createStar());
@@ -59,6 +64,7 @@ function resetGame() {
     lives = 3;
     nextLifeScore = 10;
     spawnsUntilBoss = randomBossInterval();
+    explosionTimer = 0;
     restartButton.style.display = 'none';
 }
 function createStar() {
@@ -94,7 +100,41 @@ function fireMissile() {
     laserSound.currentTime = 0;
     laserSound.play();
 }
+function startShipExplosion() {
+    shipPieces = [];
+    const pieces = 20;
+    for (let i = 0; i < pieces; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
+        shipPieces.push({
+            x: spaceship.x + spaceship.width / 2,
+            y: spaceship.y + spaceship.height / 2,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            size: Math.random() * 4 + 2,
+        });
+    }
+    explosionTimer = 60;
+    freezeEnvironment = true;
+}
 function update() {
+    if (freezeEnvironment) {
+        shipPieces.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+        });
+        if (explosionTimer > 0) {
+            explosionTimer--;
+        }
+        else {
+            freezeEnvironment = false;
+            shipPieces = [];
+            if (!gameOver) {
+                spaceship.x = canvasWidth / 2 - spaceship.width / 2;
+            }
+        }
+        return;
+    }
     if (gameOver || paused)
         return;
     if (Math.random() < 0.02) {
@@ -135,14 +175,12 @@ function checkCollisions() {
         if (collide) {
             explosionSound.currentTime = 0;
             explosionSound.play();
+            startShipExplosion();
             obstacles.splice(oi, 1);
             lives--;
             if (lives <= 0) {
                 gameOver = true;
                 restartButton.style.display = 'block';
-            }
-            else {
-                spaceship.x = canvasWidth / 2 - spaceship.width / 2;
             }
             break;
         }
@@ -177,7 +215,15 @@ function draw() {
     stars.forEach(s => {
         ctx.fillRect(s.x, s.y, s.size, s.size);
     });
-    spaceship.draw();
+    if (!freezeEnvironment) {
+        spaceship.draw();
+    }
+    else {
+        ctx.fillStyle = 'orange';
+        shipPieces.forEach(p => {
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+        });
+    }
     ctx.fillStyle = 'yellow';
     missiles.forEach(m => {
         ctx.fillRect(m.x, m.y, m.width, m.height);
