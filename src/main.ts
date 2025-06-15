@@ -64,7 +64,6 @@ let paused = false;
 let score = 0;
 let lives = 3;
 let nextLifeScore = 10;
-let slideHandled = false; // track slide gesture for pausing on mobile
 
 function randomBossInterval() {
   return Math.floor(Math.random() * 11) + 20;
@@ -270,18 +269,9 @@ window.addEventListener('keydown', e => {
 
 window.addEventListener('touchstart', e => {
   if (gameOver || paused) return;
-  slideHandled = false;
   const touch = e.touches[0];
   if (touch.clientX < canvasWidth / 2) spaceship.moveLeft();
   else spaceship.moveRight();
-});
-
-window.addEventListener('touchmove', () => {
-  if (gameOver) return;
-  if (!slideHandled) {
-    paused = !paused;
-    slideHandled = true;
-  }
 });
 
 window.addEventListener('click', () => {
