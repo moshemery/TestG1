@@ -3,6 +3,8 @@ const restartButton = document.getElementById('restart') as HTMLButtonElement;
 const nameModal = document.getElementById('name-modal') as HTMLDivElement;
 const nameForm = document.getElementById('name-form') as HTMLFormElement;
 const nameInput = document.getElementById('username-input') as HTMLInputElement;
+const scoreboard = document.getElementById('scoreboard') as HTMLDivElement;
+const scoreTable = document.getElementById('score-table') as HTMLTableElement;
 const ctx = canvas.getContext('2d')!;
 
 const canvasWidth = canvas.width = window.innerWidth;
@@ -127,6 +129,37 @@ async function sendScoreToAirtable(finalScore: number, name: string | null) {
   }
 }
 
+async function fetchTopScores() {
+  const params =
+    `maxRecords=10&sort%5B0%5D%5Bfield%5D=Score&sort%5B0%5D%5Bdirection%5D=desc`;
+  const url =
+    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(
+      AIRTABLE_TABLE_NAME
+    )}?${params}`;
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+    });
+    const data = await res.json();
+    return data.records || [];
+  } catch (err) {
+    console.error('Failed to fetch scores from Airtable', err);
+    return [];
+  }
+}
+
+function displayScores(records: any[]) {
+  scoreTable.innerHTML =
+    '<tr><th>Name</th><th>Score</th><th>Date of Play</th></tr>';
+  records.forEach((r: any) => {
+    const fields = r.fields;
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${fields.Name}</td><td>${fields.Score}</td><td>${fields['Date of Play']}</td>`;
+    scoreTable.appendChild(row);
+  });
+  scoreboard.style.display = 'block';
+}
+
 function randomBossInterval() {
   return Math.floor(Math.random() * 11) + 20;
 }
@@ -150,6 +183,7 @@ function resetGame() {
   spawnsUntilBoss = randomBossInterval();
   explosionTimer = 0;
   restartButton.style.display = 'none';
+  scoreboard.style.display = 'none';
 }
 
 function createStar() {
@@ -276,7 +310,9 @@ function checkCollisions() {
       lives--;
       if (lives <= 0) {
         gameOver = true;
-        sendScoreToAirtable(score, playerName);
+        sendScoreToAirtable(score, playerName)
+          .then(fetchTopScores)
+          .then(displayScores);
         restartButton.style.display = 'block';
       }
       break;
