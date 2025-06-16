@@ -10,9 +10,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 const canvas = document.getElementById('game');
 const restartButton = document.getElementById('restart');
+const nameModal = document.getElementById('name-modal');
+const nameForm = document.getElementById('name-form');
+const nameInput = document.getElementById('username-input');
 const ctx = canvas.getContext('2d');
 const canvasWidth = canvas.width = window.innerWidth;
 const canvasHeight = canvas.height = window.innerHeight;
+const PLAYER_NAME_KEY = 'playerName';
+let playerName = localStorage.getItem(PLAYER_NAME_KEY);
 // Airtable configuration
 const AIRTABLE_API_KEY = 'patipkX905rbyd9jI.5f1856e68ce599923e05fc3423c5f5d61805a64ae757bfdf0595e36267f401da';
 // TODO: replace with your Airtable Base ID
@@ -64,7 +69,7 @@ function formatDate(date) {
     const year = date.getFullYear();
     return `${month}/${day}/${year}`;
 }
-function sendScoreToAirtable(finalScore) {
+function sendScoreToAirtable(finalScore, name) {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
         const body = {
@@ -72,6 +77,7 @@ function sendScoreToAirtable(finalScore) {
                 {
                     fields: {
                         Score: finalScore,
+                        Name: name || 'Anonymous',
                         'Date of Play': formatDate(new Date()),
                     },
                 },
@@ -228,7 +234,7 @@ function checkCollisions() {
             lives--;
             if (lives <= 0) {
                 gameOver = true;
-                sendScoreToAirtable(score);
+                sendScoreToAirtable(score, playerName);
                 restartButton.style.display = 'block';
             }
             break;
@@ -347,4 +353,18 @@ window.addEventListener('deviceorientation', e => {
 });
 restartButton.addEventListener('click', () => {
     resetGame();
+});
+if (!playerName) {
+    paused = true;
+    nameModal.style.display = 'block';
+}
+nameForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = nameInput.value.trim();
+    if (name) {
+        playerName = name;
+        localStorage.setItem(PLAYER_NAME_KEY, name);
+        nameModal.style.display = 'none';
+        paused = false;
+    }
 });
