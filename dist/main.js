@@ -125,7 +125,6 @@ function displayScores(records) {
         const row = document.createElement('tr');
         row.innerHTML = `<td>${fields.Name}</td><td>${fields.Score}</td><td>${fields['Date of Play']}</td>`;
         if (playerName && fields.Name === playerName) {
-            row.style.backgroundColor = '#fffa8b';
             row.style.fontWeight = 'bold';
         }
         scoreTable.appendChild(row);
