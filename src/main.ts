@@ -93,8 +93,8 @@ async function sendScoreToAirtable(finalScore: number) {
     records: [
       {
         fields: {
-          score: finalScore,
-          'Date Of Play': new Date().toISOString(),
+          Score: finalScore,
+          'Date of Play': new Date().toISOString(),
         },
       },
     ],
