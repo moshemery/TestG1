@@ -12,6 +12,10 @@ const canvasHeight = canvas.height = window.innerHeight;
 
 const PLAYER_NAME_KEY = 'playerName';
 let playerName: string | null = localStorage.getItem(PLAYER_NAME_KEY);
+let topScore = 0;
+if (playerName) {
+  fetchUserTopScore(playerName).then(s => (topScore = s));
+}
 
 // Airtable configuration
 const AIRTABLE_API_KEY =
@@ -146,6 +150,27 @@ async function fetchTopScores() {
     console.error('Failed to fetch scores from Airtable', err);
     return [];
   }
+}
+
+async function fetchUserTopScore(name: string): Promise<number> {
+  const params =
+    `maxRecords=1&filterByFormula=${encodeURIComponent(`{Name}='${name}'`)}&sort%5B0%5D%5Bfield%5D=Score&sort%5B0%5D%5Bdirection%5D=desc`;
+  const url =
+    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(
+      AIRTABLE_TABLE_NAME
+    )}?${params}`;
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+    });
+    const data = await res.json();
+    if (data.records && data.records.length > 0) {
+      return data.records[0].fields.Score || 0;
+    }
+  } catch (err) {
+    console.error('Failed to fetch user top score from Airtable', err);
+  }
+  return 0;
 }
 
 function displayScores(records: any[]) {
@@ -314,7 +339,12 @@ function checkCollisions() {
       if (lives <= 0) {
         gameOver = true;
         sendScoreToAirtable(score, playerName)
-          .then(fetchTopScores)
+          .then(() =>
+            fetchUserTopScore(playerName || '').then(s => {
+              topScore = s;
+              return fetchTopScores();
+            })
+          )
           .then(displayScores);
         restartButton.style.display = 'block';
       }
@@ -377,7 +407,11 @@ function draw() {
   ctx.fillStyle = 'white';
   ctx.font = '24px sans-serif';
   ctx.textAlign = 'right';
-  ctx.fillText(`Score: ${score} Lives: ${lives}`, canvasWidth - 20, 30);
+  ctx.fillText(
+    `Name: ${playerName || 'Anonymous'} Score: ${score} Lives: ${lives} Top: ${topScore}`,
+    canvasWidth - 20,
+    30
+  );
 
   if (paused && !gameOver) {
     ctx.font = '48px sans-serif';
@@ -452,6 +486,7 @@ nameForm.addEventListener('submit', e => {
   if (name) {
     playerName = name;
     localStorage.setItem(PLAYER_NAME_KEY, name);
+    fetchUserTopScore(name).then(s => (topScore = s));
     nameModal.style.display = 'none';
     paused = false;
   }
