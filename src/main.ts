@@ -1,9 +1,15 @@
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const restartButton = document.getElementById('restart') as HTMLButtonElement;
+const nameModal = document.getElementById('name-modal') as HTMLDivElement;
+const nameForm = document.getElementById('name-form') as HTMLFormElement;
+const nameInput = document.getElementById('username-input') as HTMLInputElement;
 const ctx = canvas.getContext('2d')!;
 
 const canvasWidth = canvas.width = window.innerWidth;
 const canvasHeight = canvas.height = window.innerHeight;
+
+const PLAYER_NAME_KEY = 'playerName';
+let playerName: string | null = localStorage.getItem(PLAYER_NAME_KEY);
 
 // Airtable configuration
 const AIRTABLE_API_KEY =
@@ -91,7 +97,7 @@ function formatDate(date: Date): string {
   return `${month}/${day}/${year}`;
 }
 
-async function sendScoreToAirtable(finalScore: number) {
+async function sendScoreToAirtable(finalScore: number, name: string | null) {
   const url =
     `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(
       AIRTABLE_TABLE_NAME
@@ -101,6 +107,7 @@ async function sendScoreToAirtable(finalScore: number) {
       {
         fields: {
           Score: finalScore,
+          Name: name || 'Anonymous',
           'Date of Play': formatDate(new Date()),
         },
       },
@@ -269,7 +276,7 @@ function checkCollisions() {
       lives--;
       if (lives <= 0) {
         gameOver = true;
-        sendScoreToAirtable(score);
+        sendScoreToAirtable(score, playerName);
         restartButton.style.display = 'block';
       }
       break;
@@ -393,5 +400,21 @@ window.addEventListener('deviceorientation', e => {
 
 restartButton.addEventListener('click', () => {
   resetGame();
+});
+
+if (!playerName) {
+  paused = true;
+  nameModal.style.display = 'block';
+}
+
+nameForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const name = nameInput.value.trim();
+  if (name) {
+    playerName = name;
+    localStorage.setItem(PLAYER_NAME_KEY, name);
+    nameModal.style.display = 'none';
+    paused = false;
+  }
 });
 
