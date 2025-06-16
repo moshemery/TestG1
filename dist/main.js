@@ -1,9 +1,23 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 const canvas = document.getElementById('game');
 const restartButton = document.getElementById('restart');
 const ctx = canvas.getContext('2d');
 const canvasWidth = canvas.width = window.innerWidth;
 const canvasHeight = canvas.height = window.innerHeight;
+// Airtable configuration
+const AIRTABLE_API_KEY = 'patipkX905rbyd9jI.5f1856e68ce599923e05fc3423c5f5d61805a64ae757bfdf0595e36267f401da';
+// TODO: replace with your Airtable Base ID
+const AIRTABLE_BASE_ID = 'app2CnjHccmeNtrXz';
+const AIRTABLE_TABLE_NAME = 'Game Scores';
 const friendImage = new Image();
 friendImage.src = 'resources/friend.png';
 const enemyImage = new Image();
@@ -44,6 +58,34 @@ let nextLifeScore = 10;
 let shipPieces = [];
 let explosionTimer = 0;
 let freezeEnvironment = false;
+function sendScoreToAirtable(finalScore) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
+        const body = {
+            records: [
+                {
+                    fields: {
+                        score: finalScore,
+                        'Date Of Play': new Date().toISOString(),
+                    },
+                },
+            ],
+        };
+        try {
+            yield fetch(url, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+        }
+        catch (err) {
+            console.error('Failed to send score to Airtable', err);
+        }
+    });
+}
 function randomBossInterval() {
     return Math.floor(Math.random() * 11) + 20;
 }
@@ -180,6 +222,7 @@ function checkCollisions() {
             lives--;
             if (lives <= 0) {
                 gameOver = true;
+                sendScoreToAirtable(score);
                 restartButton.style.display = 'block';
             }
             break;
