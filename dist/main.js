@@ -58,6 +58,12 @@ let nextLifeScore = 10;
 let shipPieces = [];
 let explosionTimer = 0;
 let freezeEnvironment = false;
+function formatDate(date) {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+}
 function sendScoreToAirtable(finalScore) {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
@@ -66,7 +72,7 @@ function sendScoreToAirtable(finalScore) {
                 {
                     fields: {
                         Score: finalScore,
-                        'Date of Play': new Date().toISOString(),
+                        'Date of Play': formatDate(new Date()),
                     },
                 },
             ],
