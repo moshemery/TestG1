@@ -1,14 +1,18 @@
+import { Spaceship, drawSpaceship } from './spaceship';
+import { Star, createStar, updateStars, drawStars } from './background';
+import { obstacles, missiles, spawnObstacle, fireMissile, updateObstacles, updateMissiles, drawMissiles, drawObstacles } from './enemy';
+import { scoreboard, sendScoreToAirtable, fetchUserTopScore, fetchTopScores, displayScores } from './scoreboard';
+import { drawTopInfo } from './topInfo';
+
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const restartButton = document.getElementById('restart') as HTMLButtonElement;
 const nameModal = document.getElementById('name-modal') as HTMLDivElement;
 const nameForm = document.getElementById('name-form') as HTMLFormElement;
 const nameInput = document.getElementById('username-input') as HTMLInputElement;
-const scoreboard = document.getElementById('scoreboard') as HTMLDivElement;
-const scoreTable = document.getElementById('score-table') as HTMLTableElement;
 const ctx = canvas.getContext('2d')!;
 
-const canvasWidth = canvas.width = window.innerWidth;
-const canvasHeight = canvas.height = window.innerHeight;
+const canvasWidth = (canvas.width = window.innerWidth);
+const canvasHeight = (canvas.height = window.innerHeight);
 
 const PLAYER_NAME_KEY = 'playerName';
 let playerName: string | null = localStorage.getItem(PLAYER_NAME_KEY);
@@ -17,67 +21,23 @@ if (playerName) {
   fetchUserTopScore(playerName).then(s => (topScore = s));
 }
 
-// Airtable configuration
-const AIRTABLE_API_KEY =
-  'patipkX905rbyd9jI.5f1856e68ce599923e05fc3423c5f5d61805a64ae757bfdf0595e36267f401da';
-// TODO: replace with your Airtable Base ID
-const AIRTABLE_BASE_ID = 'app2CnjHccmeNtrXz';
-const AIRTABLE_TABLE_NAME = 'Game Scores';
-
 const friendImage = new Image();
 friendImage.src = 'resources/friend.png';
-
 const enemyImage = new Image();
 enemyImage.src = 'resources/enemy.png';
-
 const bossImage = new Image();
 bossImage.src = 'resources/boss.png';
 
-// Load sound effects
 const explosionSound = new Audio('resources/explosion-80108.mp3');
 const laserSound = new Audio('resources/laser-zap-90575.mp3');
 const hitSound = new Audio('resources/explosion-322491.mp3');
 
-class Spaceship {
-  width = 40;
-  height = 60;
-  x = canvasWidth / 2 - this.width / 2;
-  y = canvasHeight - this.height - 10;
-  speed = 9; // increased by ~30% for faster web play
-
-  moveLeft() {
-    this.x = Math.max(0, this.x - this.speed);
-  }
-
-  moveRight() {
-    this.x = Math.min(canvasWidth - this.width, this.x + this.speed);
-  }
-
-  draw() {
-    ctx.drawImage(friendImage, this.x, this.y, this.width, this.height);
-  }
+const spaceship = new Spaceship(canvasWidth, canvasHeight);
+const stars: Star[] = [];
+for (let i = 0; i < 100; i++) {
+  stars.push(createStar(canvasWidth, canvasHeight));
 }
 
-interface Obstacle {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  speed: number;
-  isBoss: boolean;
-}
-
-const spaceship = new Spaceship();
-const obstacles: Obstacle[] = [];
-const stars: { x: number; y: number; size: number; speed: number }[] = [];
-interface Missile {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  speed: number;
-}
-const missiles: Missile[] = [];
 let gameOver = false;
 let paused = false;
 let score = 0;
@@ -91,107 +51,11 @@ interface ShipPiece {
   vy: number;
   size: number;
 }
-
 let shipPieces: ShipPiece[] = [];
 let explosionTimer = 0;
 let freezeEnvironment = false;
 
-function formatDate(date: Date): string {
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const year = date.getFullYear();
-  return `${month}/${day}/${year}`;
-}
-
-async function sendScoreToAirtable(finalScore: number, name: string | null) {
-  const url =
-    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(
-      AIRTABLE_TABLE_NAME
-    )}`;
-  const body = {
-    records: [
-      {
-        fields: {
-          Score: finalScore,
-          Name: name || 'Anonymous',
-          'Date of Play': formatDate(new Date()),
-        },
-      },
-    ],
-  };
-  try {
-    await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-  } catch (err) {
-    console.error('Failed to send score to Airtable', err);
-  }
-}
-
-async function fetchTopScores() {
-  const params =
-    `maxRecords=10&sort%5B0%5D%5Bfield%5D=Score&sort%5B0%5D%5Bdirection%5D=desc`;
-  const url =
-    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(
-      AIRTABLE_TABLE_NAME
-    )}?${params}`;
-  try {
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
-    });
-    const data = await res.json();
-    return data.records || [];
-  } catch (err) {
-    console.error('Failed to fetch scores from Airtable', err);
-    return [];
-  }
-}
-
-async function fetchUserTopScore(name: string): Promise<number> {
-  const params =
-    `maxRecords=1&filterByFormula=${encodeURIComponent(`{Name}='${name}'`)}&sort%5B0%5D%5Bfield%5D=Score&sort%5B0%5D%5Bdirection%5D=desc`;
-  const url =
-    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(
-      AIRTABLE_TABLE_NAME
-    )}?${params}`;
-  try {
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
-    });
-    const data = await res.json();
-    if (data.records && data.records.length > 0) {
-      return data.records[0].fields.Score || 0;
-    }
-  } catch (err) {
-    console.error('Failed to fetch user top score from Airtable', err);
-  }
-  return 0;
-}
-
-function displayScores(records: any[]) {
-  scoreTable.innerHTML =
-    '<tr><th>Name</th><th>Score</th><th>Date of Play</th></tr>';
-  records.forEach((r: any) => {
-    const fields = r.fields;
-    const row = document.createElement('tr');
-    row.innerHTML = `<td>${fields.Name}</td><td>${fields.Score}</td><td>${fields['Date of Play']}</td>`;
-    if (playerName && fields.Name === playerName) {
-      row.style.fontWeight = 'bold';
-    }
-    scoreTable.appendChild(row);
-  });
-  scoreboard.style.display = 'block';
-}
-
-function randomBossInterval() {
-  return Math.floor(Math.random() * 11) + 20;
-}
-let spawnsUntilBoss = randomBossInterval();
+const spawnsUntilBoss = { value: Math.floor(Math.random() * 11) + 20 };
 
 function resetGame() {
   obstacles.length = 0;
@@ -200,7 +64,7 @@ function resetGame() {
   freezeEnvironment = false;
   stars.splice(0, stars.length);
   for (let i = 0; i < 100; i++) {
-    stars.push(createStar());
+    stars.push(createStar(canvasWidth, canvasHeight));
   }
   spaceship.x = canvasWidth / 2 - spaceship.width / 2;
   gameOver = false;
@@ -208,47 +72,10 @@ function resetGame() {
   score = 0;
   lives = 3;
   nextLifeScore = 10;
-  spawnsUntilBoss = randomBossInterval();
+  spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
   explosionTimer = 0;
   restartButton.style.display = 'none';
   scoreboard.style.display = 'none';
-}
-
-function createStar() {
-  return {
-    x: Math.random() * canvasWidth,
-    y: Math.random() * canvasHeight,
-    size: Math.random() * 2 + 1,
-    speed: Math.random() * 1 + 0.5,
-  };
-}
-
-for (let i = 0; i < 100; i++) {
-  stars.push(createStar());
-}
-
-function spawnObstacle() {
-  const width = 40;
-  const height = 40;
-  const x = Math.random() * (canvasWidth - width);
-  const speed = 4 + Math.random() * 2;
-  spawnsUntilBoss--;
-  const isBoss = spawnsUntilBoss <= 0;
-  if (isBoss) {
-    spawnsUntilBoss = randomBossInterval();
-  }
-  obstacles.push({ x, y: -height, width, height, speed, isBoss });
-}
-
-function fireMissile() {
-  const width = 5;
-  const height = 10;
-  const x = spaceship.x + spaceship.width / 2 - width / 2;
-  const y = spaceship.y - height;
-  const speed = 10;
-  missiles.push({ x, y, width, height, speed });
-  laserSound.currentTime = 0;
-  laserSound.play();
 }
 
 function startShipExplosion() {
@@ -269,59 +96,6 @@ function startShipExplosion() {
   freezeEnvironment = true;
 }
 
-function update() {
-  if (freezeEnvironment) {
-    shipPieces.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-    });
-    if (explosionTimer > 0) {
-      explosionTimer--;
-    } else {
-      freezeEnvironment = false;
-      shipPieces = [];
-      if (!gameOver) {
-        spaceship.x = canvasWidth / 2 - spaceship.width / 2;
-      }
-    }
-    return;
-  }
-
-  if (gameOver || paused) return;
-  if (Math.random() < 0.02) {
-    spawnObstacle();
-  }
-
-  obstacles.forEach(o => {
-    o.y += o.speed;
-  });
-
-  for (let i = obstacles.length - 1; i >= 0; i--) {
-    const o = obstacles[i];
-    if (o.y > canvasHeight + o.height) {
-      obstacles.splice(i, 1);
-    }
-  }
-
-  for (let i = missiles.length - 1; i >= 0; i--) {
-    const m = missiles[i];
-    m.y -= m.speed;
-    if (m.y + m.height < 0) {
-      missiles.splice(i, 1);
-    }
-  }
-
-  stars.forEach(s => {
-    s.y += s.speed;
-    if (s.y > canvasHeight) {
-      s.y = 0;
-      s.x = Math.random() * canvasWidth;
-    }
-  });
-
-  checkCollisions();
-}
-
 function checkCollisions() {
   for (let oi = obstacles.length - 1; oi >= 0; oi--) {
     const o = obstacles[oi];
@@ -339,19 +113,17 @@ function checkCollisions() {
       if (lives <= 0) {
         gameOver = true;
         sendScoreToAirtable(score, playerName)
-          .then(() =>
-            fetchUserTopScore(playerName || '').then(s => {
-              topScore = s;
-              return fetchTopScores();
-            })
-          )
+          .then(() => fetchUserTopScore(playerName || ''))
+          .then(s => {
+            topScore = s;
+            return fetchTopScores();
+          })
           .then(displayScores);
         restartButton.style.display = 'block';
       }
       break;
     }
   }
-
   for (let mi = missiles.length - 1; mi >= 0; mi--) {
     const m = missiles[mi];
     for (let oi = obstacles.length - 1; oi >= 0; oi--) {
@@ -377,17 +149,43 @@ function checkCollisions() {
   }
 }
 
+function update() {
+  if (freezeEnvironment) {
+    shipPieces.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+    });
+    if (explosionTimer > 0) {
+      explosionTimer--;
+    } else {
+      freezeEnvironment = false;
+      shipPieces = [];
+      if (!gameOver) {
+        spaceship.x = canvasWidth / 2 - spaceship.width / 2;
+      }
+    }
+    return;
+  }
+
+  if (gameOver || paused) return;
+  if (Math.random() < 0.02) {
+    spawnObstacle(canvasWidth, spawnsUntilBoss);
+  }
+
+  updateObstacles(canvasHeight);
+  updateMissiles();
+  updateStars(stars, canvasWidth, canvasHeight);
+  checkCollisions();
+}
+
 function draw() {
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-  ctx.fillStyle = 'white';
-  stars.forEach(s => {
-    ctx.fillRect(s.x, s.y, s.size, s.size);
-  });
+  drawStars(ctx, stars);
 
   if (!freezeEnvironment) {
-    spaceship.draw();
+    drawSpaceship(ctx, spaceship, friendImage);
   } else {
     ctx.fillStyle = 'orange';
     shipPieces.forEach(p => {
@@ -395,23 +193,10 @@ function draw() {
     });
   }
 
-  ctx.fillStyle = 'yellow';
-  missiles.forEach(m => {
-    ctx.fillRect(m.x, m.y, m.width, m.height);
-  });
+  drawMissiles(ctx);
+  drawObstacles(ctx, enemyImage, bossImage);
 
-  obstacles.forEach(o => {
-    ctx.drawImage(o.isBoss ? bossImage : enemyImage, o.x, o.y, o.width, o.height);
-  });
-
-  ctx.fillStyle = 'white';
-  ctx.font = '24px sans-serif';
-  ctx.textAlign = 'right';
-  ctx.fillText(
-    `Name: ${playerName || 'Anonymous'} Score: ${score} Lives: ${lives} Top: ${topScore}`,
-    canvasWidth - 20,
-    30
-  );
+  drawTopInfo(ctx, playerName, score, lives, topScore, canvasWidth);
 
   if (paused && !gameOver) {
     ctx.font = '48px sans-serif';
@@ -444,7 +229,7 @@ window.addEventListener('keydown', e => {
   if (paused) return;
   if (e.key === 'ArrowLeft') spaceship.moveLeft();
   if (e.key === 'ArrowRight') spaceship.moveRight();
-  if (e.code === 'Space') fireMissile();
+  if (e.code === 'Space') fireMissile(spaceship, laserSound);
 });
 
 window.addEventListener('touchstart', e => {
@@ -456,9 +241,8 @@ window.addEventListener('touchstart', e => {
 
 window.addEventListener('click', () => {
   if (gameOver || paused) return;
-  fireMissile();
+  fireMissile(spaceship, laserSound);
 });
-
 
 window.addEventListener('deviceorientation', e => {
   if (gameOver || paused) return;
@@ -491,4 +275,3 @@ nameForm.addEventListener('submit', e => {
     paused = false;
   }
 });
-
