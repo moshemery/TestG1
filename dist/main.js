@@ -1,8 +1,8 @@
-import { Spaceship, drawSpaceship } from './spaceship';
-import { createStar, updateStars, drawStars } from './background';
-import { obstacles, missiles, spawnObstacle, fireMissile, updateObstacles, updateMissiles, drawMissiles, drawObstacles } from './enemy';
-import { scoreboard, sendScoreToAirtable, fetchUserTopScore, fetchTopScores, displayScores } from './scoreboard';
-import { drawTopInfo } from './topInfo';
+import { Spaceship, drawSpaceship } from './spaceship.js';
+import { createStar, updateStars, drawStars } from './background.js';
+import { obstacles, missiles, spawnObstacle, fireMissile, updateObstacles, updateMissiles, drawMissiles, drawObstacles } from './enemy.js';
+import { scoreboard, sendScoreToAirtable, fetchUserTopScore, fetchTopScores, displayScores } from './scoreboard.js';
+import { drawTopInfo } from './topInfo.js';
 const canvas = document.getElementById('game');
 const restartButton = document.getElementById('restart');
 const nameModal = document.getElementById('name-modal');
