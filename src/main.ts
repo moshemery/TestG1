@@ -1,11 +1,10 @@
 import { Spaceship, drawSpaceship } from './spaceship.js';
 import { Star, createStar, updateStars, drawStars } from './background.js';
 import { obstacles, missiles, spawnObstacle, fireMissile, updateObstacles, updateMissiles, drawMissiles, drawObstacles } from './enemy.js';
-import { scoreboard, sendScoreToAirtable, fetchUserTopScore, fetchTopScores, displayScores } from './scoreboard.js';
+import { scoreboard, sendScoreToAirtable, fetchTopScores, displayScores } from './scoreboard.js';
 import { drawTopInfo } from './topInfo.js';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
-const restartButton = document.getElementById('restart') as HTMLButtonElement;
 const nameModal = document.getElementById('name-modal') as HTMLDivElement;
 const nameForm = document.getElementById('name-form') as HTMLFormElement;
 const nameInput = document.getElementById('username-input') as HTMLInputElement;
@@ -15,11 +14,9 @@ const canvasWidth = (canvas.width = window.innerWidth);
 const canvasHeight = (canvas.height = window.innerHeight);
 
 const PLAYER_NAME_KEY = 'playerName';
+const HIGH_SCORE_KEY = 'highScore';
 let playerName: string | null = localStorage.getItem(PLAYER_NAME_KEY);
-let topScore = 0;
-if (playerName) {
-  fetchUserTopScore(playerName).then(s => (topScore = s));
-}
+let topScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
 
 const friendImage = new Image();
 friendImage.src = 'resources/friend.png';
@@ -74,7 +71,6 @@ function resetGame() {
   nextLifeScore = 10;
   spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
   explosionTimer = 0;
-  restartButton.style.display = 'none';
   scoreboard.style.display = 'none';
 }
 
@@ -112,14 +108,16 @@ function checkCollisions() {
       lives--;
       if (lives <= 0) {
         gameOver = true;
+        const storedHigh = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+        if (score > storedHigh) {
+          localStorage.setItem(HIGH_SCORE_KEY, String(score));
+          topScore = score;
+        } else {
+          topScore = storedHigh;
+        }
         sendScoreToAirtable(score, playerName)
-          .then(() => fetchUserTopScore(playerName || ''))
-          .then(s => {
-            topScore = s;
-            return fetchTopScores();
-          })
+          .then(fetchTopScores)
           .then(displayScores);
-        restartButton.style.display = 'block';
       }
       break;
     }
@@ -208,7 +206,7 @@ function draw() {
     ctx.fillStyle = 'white';
     ctx.font = '48px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Game Over', canvasWidth / 2, canvasHeight / 2);
+    ctx.fillText('New Game', canvasWidth / 2, canvasHeight / 2);
   }
 }
 
@@ -233,14 +231,22 @@ window.addEventListener('keydown', e => {
 });
 
 window.addEventListener('touchstart', e => {
-  if (gameOver || paused) return;
+  if (gameOver) {
+    resetGame();
+    return;
+  }
+  if (paused) return;
   const touch = e.touches[0];
   if (touch.clientX < canvasWidth / 2) spaceship.moveLeft();
   else spaceship.moveRight();
 });
 
 window.addEventListener('click', () => {
-  if (gameOver || paused) return;
+  if (gameOver) {
+    resetGame();
+    return;
+  }
+  if (paused) return;
   fireMissile(spaceship, laserSound);
 });
 
@@ -255,9 +261,6 @@ window.addEventListener('deviceorientation', e => {
   }
 });
 
-restartButton.addEventListener('click', () => {
-  resetGame();
-});
 
 if (!playerName) {
   paused = true;
@@ -270,7 +273,7 @@ nameForm.addEventListener('submit', e => {
   if (name) {
     playerName = name;
     localStorage.setItem(PLAYER_NAME_KEY, name);
-    fetchUserTopScore(name).then(s => (topScore = s));
+    topScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
     nameModal.style.display = 'none';
     paused = false;
   }
