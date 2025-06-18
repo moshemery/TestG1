@@ -1,6 +1,6 @@
 import { Spaceship, drawSpaceship } from './spaceship.js';
 import { createStar, updateStars, drawStars } from './background.js';
-import { obstacles, missiles, spawnObstacle, fireMissile, updateObstacles, updateMissiles, drawMissiles, drawObstacles } from './enemy.js';
+import { obstacles, missiles, spawnObstacle, fireMissile, updateObstacles, updateMissiles, drawMissiles, drawObstacles, } from './enemy.js';
 import { scoreboard, sendScoreToAirtable, fetchTopScores, displayScores } from './scoreboard.js';
 import { drawTopInfo } from './topInfo.js';
 const canvas = document.getElementById('game');
@@ -20,6 +20,8 @@ const enemyImage = new Image();
 enemyImage.src = 'resources/enemy.png';
 const bossImage = new Image();
 bossImage.src = 'resources/boss.png';
+const portalImage = new Image();
+portalImage.src = 'resources/Portal2.png';
 const explosionSound = new Audio('resources/explosion-80108.mp3');
 const laserSound = new Audio('resources/laser-zap-90575.mp3');
 const hitSound = new Audio('resources/explosion-322491.mp3');
@@ -33,6 +35,9 @@ let paused = false;
 let score = 0;
 let lives = 3;
 let nextLifeScore = 10;
+let portal = null;
+let nextPortalScore = 100;
+let levelTransition = false;
 let enemyExplosions = [];
 let shipPieces = [];
 let explosionTimer = 0;
@@ -58,6 +63,22 @@ function resetGame() {
     explosionTimer = 0;
     scoreboard.style.display = 'none';
     canvas.style.cursor = 'default';
+}
+function startNextLevel() {
+    obstacles.length = 0;
+    missiles.length = 0;
+    shipPieces.length = 0;
+    enemyExplosions.length = 0;
+    stars.splice(0, stars.length);
+    for (let i = 0; i < 100; i++) {
+        stars.push(createStar(canvasWidth, canvasHeight));
+    }
+    spaceship.x = canvasWidth / 2 - spaceship.width / 2;
+    spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
+    freezeEnvironment = false;
+    levelTransition = false;
+    portal = null;
+    nextPortalScore += 100;
 }
 function startShipExplosion() {
     shipPieces = [];
@@ -124,6 +145,42 @@ function drawExplosions(ctx) {
         ctx.fillRect(p.x, p.y, p.size, p.size);
     });
 }
+function spawnPortal() {
+    const width = 80;
+    const height = 80;
+    const x = Math.random() * (canvasWidth - width);
+    const speed = 3;
+    portal = { x, y: -height, width, height, speed };
+}
+function updatePortal() {
+    if (!portal)
+        return;
+    portal.y += portal.speed;
+    if (portal.y > canvasHeight + portal.height) {
+        portal = null;
+    }
+}
+function drawPortal(ctx) {
+    if (!portal)
+        return;
+    ctx.drawImage(portalImage, portal.x, portal.y, portal.width, portal.height);
+}
+function checkPortalCollision() {
+    if (!portal)
+        return;
+    const sx = spaceship.x + spaceship.width / 2;
+    const sy = spaceship.y + spaceship.height / 2;
+    const px = portal.x + portal.width / 2;
+    const py = portal.y + portal.height / 2;
+    const dist = Math.hypot(sx - px, sy - py);
+    if (dist < Math.min(portal.width, portal.height) / 4) {
+        score += 20;
+        levelTransition = true;
+        freezeEnvironment = true;
+        portal = null;
+        setTimeout(startNextLevel, 5000);
+    }
+}
 function checkCollisions() {
     for (let oi = obstacles.length - 1; oi >= 0; oi--) {
         const o = obstacles[oi];
@@ -181,6 +238,9 @@ function checkCollisions() {
 }
 function update() {
     if (freezeEnvironment) {
+        if (levelTransition) {
+            return;
+        }
         shipPieces.forEach(p => {
             p.x += p.vx;
             p.y += p.vy;
@@ -202,11 +262,16 @@ function update() {
     if (Math.random() < 0.02) {
         spawnObstacle(canvasWidth, spawnsUntilBoss);
     }
+    if (score >= nextPortalScore && !portal) {
+        spawnPortal();
+    }
     updateObstacles(canvasHeight);
     updateMissiles();
+    updatePortal();
     updateExplosions();
     updateStars(stars, canvasWidth, canvasHeight);
     checkCollisions();
+    checkPortalCollision();
 }
 function draw() {
     ctx.fillStyle = 'black';
@@ -223,6 +288,7 @@ function draw() {
     }
     drawMissiles(ctx);
     drawObstacles(ctx, enemyImage, bossImage);
+    drawPortal(ctx);
     drawExplosions(ctx);
     drawTopInfo(ctx, playerName, score, lives, topScore, canvasWidth);
     if (paused && !gameOver) {
