@@ -1,4 +1,4 @@
-import { Spaceship } from './spaceship';
+import { Spaceship } from './spaceship.js';
 
 export interface Obstacle {
   x: number;
