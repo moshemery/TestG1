@@ -2,7 +2,7 @@ export const scoreboard = document.getElementById('scoreboard') as HTMLDivElemen
 const scoreTable = document.getElementById('score-table') as HTMLTableElement;
 
 const AIRTABLE_API_KEY =
-  'patipkX905rbyd9jI.5f1856e68ce599923e05fc3423c5f5d61805a64ae757bfdf0595e36267401da';
+  'patipkX905rbyd9jI.5f1856e68ce599923e05fc3423c5f5d61805a64ae757bfdf0595e36267f401da';
 const AIRTABLE_BASE_ID = 'app2CnjHccmeNtrXz';
 const AIRTABLE_TABLE_NAME = 'Game Scores';
 
