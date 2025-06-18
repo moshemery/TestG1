@@ -41,13 +41,16 @@ let score = 0;
 let lives = 3;
 let nextLifeScore = 10;
 
-interface Explosion {
+interface ExplosionPiece {
   x: number;
   y: number;
-  radius: number;
+  vx: number;
+  vy: number;
   life: number;
+  maxLife: number;
+  size: number;
 }
-let enemyExplosions: Explosion[] = [];
+let enemyExplosions: ExplosionPiece[] = [];
 
 interface ShipPiece {
   x: number;
@@ -81,6 +84,7 @@ function resetGame() {
   spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
   explosionTimer = 0;
   scoreboard.style.display = 'none';
+  canvas.style.cursor = 'default';
 }
 
 function startShipExplosion() {
@@ -102,26 +106,53 @@ function startShipExplosion() {
 }
 
 function spawnExplosion(x: number, y: number) {
-  enemyExplosions.push({ x, y, radius: 0, life: 20 });
+  const pieces = 15;
+  for (let i = 0; i < pieces; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 3 + 2;
+    enemyExplosions.push({
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 20,
+      maxLife: 20,
+      size: Math.random() * 4 + 2,
+    });
+  }
 }
 
 function updateExplosions() {
   for (let i = enemyExplosions.length - 1; i >= 0; i--) {
-    const e = enemyExplosions[i];
-    e.radius += 2;
-    e.life--;
-    if (e.life <= 0) {
+    const p = enemyExplosions[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.98;
+    p.vy *= 0.98;
+    p.life--;
+    if (p.life <= 0) {
       enemyExplosions.splice(i, 1);
     }
   }
 }
 
+function getExplosionColor(p: ExplosionPiece) {
+  const half = p.maxLife / 2;
+  if (p.life > half) {
+    const t = (p.life - half) / half; // 0..1
+    const g = Math.floor(255 * t);
+    return `rgb(255,${g},0)`; // yellow -> red
+  } else {
+    const t = p.life / half; // 0..1
+    const r = Math.floor(255 * t);
+    return `rgb(${r},0,0)`; // red -> black
+  }
+}
+
 function drawExplosions(ctx: CanvasRenderingContext2D) {
-  ctx.fillStyle = 'orange';
-  enemyExplosions.forEach(e => {
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-    ctx.fill();
+  enemyExplosions.forEach(p => {
+    ctx.fillStyle = getExplosionColor(p);
+    ctx.fillRect(p.x, p.y, p.size, p.size);
   });
 }
 
@@ -141,6 +172,7 @@ function checkCollisions() {
       lives--;
       if (lives <= 0) {
         gameOver = true;
+        canvas.style.cursor = 'pointer';
         const storedHigh = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
         if (score > storedHigh) {
           localStorage.setItem(HIGH_SCORE_KEY, String(score));
@@ -239,10 +271,18 @@ function draw() {
   }
 
   if (gameOver) {
-    ctx.fillStyle = 'white';
+    const text = 'New Game';
+    ctx.fillStyle = 'blue';
     ctx.font = '48px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('New Game', canvasWidth / 2, canvasHeight / 2);
+    ctx.fillText(text, canvasWidth / 2, canvasHeight / 2);
+    const metrics = ctx.measureText(text);
+    const textWidth = metrics.width;
+    ctx.strokeStyle = 'blue';
+    ctx.beginPath();
+    ctx.moveTo(canvasWidth / 2 - textWidth / 2, canvasHeight / 2 + 5);
+    ctx.lineTo(canvasWidth / 2 + textWidth / 2, canvasHeight / 2 + 5);
+    ctx.stroke();
   }
 }
 
