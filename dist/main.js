@@ -33,6 +33,7 @@ let paused = false;
 let score = 0;
 let lives = 3;
 let nextLifeScore = 10;
+let enemyExplosions = [];
 let shipPieces = [];
 let explosionTimer = 0;
 let freezeEnvironment = false;
@@ -41,6 +42,7 @@ function resetGame() {
     obstacles.length = 0;
     missiles.length = 0;
     shipPieces.length = 0;
+    enemyExplosions.length = 0;
     freezeEnvironment = false;
     stars.splice(0, stars.length);
     for (let i = 0; i < 100; i++) {
@@ -72,6 +74,27 @@ function startShipExplosion() {
     }
     explosionTimer = 60;
     freezeEnvironment = true;
+}
+function spawnExplosion(x, y) {
+    enemyExplosions.push({ x, y, radius: 0, life: 20 });
+}
+function updateExplosions() {
+    for (let i = enemyExplosions.length - 1; i >= 0; i--) {
+        const e = enemyExplosions[i];
+        e.radius += 2;
+        e.life--;
+        if (e.life <= 0) {
+            enemyExplosions.splice(i, 1);
+        }
+    }
+}
+function drawExplosions(ctx) {
+    ctx.fillStyle = 'orange';
+    enemyExplosions.forEach(e => {
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
 }
 function checkCollisions() {
     for (let oi = obstacles.length - 1; oi >= 0; oi--) {
@@ -114,6 +137,7 @@ function checkCollisions() {
             if (hit) {
                 hitSound.currentTime = 0;
                 hitSound.play();
+                spawnExplosion(o.x + o.width / 2, o.y + o.height / 2);
                 obstacles.splice(oi, 1);
                 missiles.splice(mi, 1);
                 score += 1 + (o.isBoss ? 10 : 0);
@@ -151,6 +175,7 @@ function update() {
     }
     updateObstacles(canvasHeight);
     updateMissiles();
+    updateExplosions();
     updateStars(stars, canvasWidth, canvasHeight);
     checkCollisions();
 }
@@ -169,6 +194,7 @@ function draw() {
     }
     drawMissiles(ctx);
     drawObstacles(ctx, enemyImage, bossImage);
+    drawExplosions(ctx);
     drawTopInfo(ctx, playerName, score, lives, topScore, canvasWidth);
     if (paused && !gameOver) {
         ctx.font = '48px sans-serif';
