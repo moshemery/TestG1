@@ -41,6 +41,14 @@ let score = 0;
 let lives = 3;
 let nextLifeScore = 10;
 
+interface Explosion {
+  x: number;
+  y: number;
+  radius: number;
+  life: number;
+}
+let enemyExplosions: Explosion[] = [];
+
 interface ShipPiece {
   x: number;
   y: number;
@@ -58,6 +66,7 @@ function resetGame() {
   obstacles.length = 0;
   missiles.length = 0;
   shipPieces.length = 0;
+  enemyExplosions.length = 0;
   freezeEnvironment = false;
   stars.splice(0, stars.length);
   for (let i = 0; i < 100; i++) {
@@ -90,6 +99,30 @@ function startShipExplosion() {
   }
   explosionTimer = 60;
   freezeEnvironment = true;
+}
+
+function spawnExplosion(x: number, y: number) {
+  enemyExplosions.push({ x, y, radius: 0, life: 20 });
+}
+
+function updateExplosions() {
+  for (let i = enemyExplosions.length - 1; i >= 0; i--) {
+    const e = enemyExplosions[i];
+    e.radius += 2;
+    e.life--;
+    if (e.life <= 0) {
+      enemyExplosions.splice(i, 1);
+    }
+  }
+}
+
+function drawExplosions(ctx: CanvasRenderingContext2D) {
+  ctx.fillStyle = 'orange';
+  enemyExplosions.forEach(e => {
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
 }
 
 function checkCollisions() {
@@ -134,6 +167,7 @@ function checkCollisions() {
       if (hit) {
         hitSound.currentTime = 0;
         hitSound.play();
+        spawnExplosion(o.x + o.width / 2, o.y + o.height / 2);
         obstacles.splice(oi, 1);
         missiles.splice(mi, 1);
         score += 1 + (o.isBoss ? 10 : 0);
@@ -172,6 +206,7 @@ function update() {
 
   updateObstacles(canvasHeight);
   updateMissiles();
+  updateExplosions();
   updateStars(stars, canvasWidth, canvasHeight);
   checkCollisions();
 }
@@ -193,6 +228,7 @@ function draw() {
 
   drawMissiles(ctx);
   drawObstacles(ctx, enemyImage, bossImage);
+  drawExplosions(ctx);
 
   drawTopInfo(ctx, playerName, score, lives, topScore, canvasWidth);
 
