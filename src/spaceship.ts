@@ -3,7 +3,8 @@ export class Spaceship {
   height = 60;
   x: number;
   y: number;
-  speed = 9;
+  // Increase speed by roughly 30% for snappier keyboard control
+  speed = 12;
 
   constructor(private canvasWidth: number, private canvasHeight: number) {
     this.x = canvasWidth / 2 - this.width / 2;

@@ -41,9 +41,10 @@ const laserSound = new Audio('resources/laser-zap-90575.mp3');
 const hitSound = new Audio('resources/explosion-322491.mp3');
 
 const spaceship = new Spaceship(canvasWidth, canvasHeight);
+let stage = 1;
 const stars: Star[] = [];
 for (let i = 0; i < 100; i++) {
-  stars.push(createStar(canvasWidth, canvasHeight));
+  stars.push(createStar(canvasWidth, canvasHeight, stage));
 }
 
 let gameOver = false;
@@ -93,9 +94,10 @@ function resetGame() {
   shipPieces.length = 0;
   enemyExplosions.length = 0;
   freezeEnvironment = false;
+  stage = 1;
   stars.splice(0, stars.length);
   for (let i = 0; i < 100; i++) {
-    stars.push(createStar(canvasWidth, canvasHeight));
+    stars.push(createStar(canvasWidth, canvasHeight, stage));
   }
   spaceship.x = canvasWidth / 2 - spaceship.width / 2;
   gameOver = false;
@@ -114,9 +116,10 @@ function startNextLevel() {
   missiles.length = 0;
   shipPieces.length = 0;
   enemyExplosions.length = 0;
+  stage++;
   stars.splice(0, stars.length);
   for (let i = 0; i < 100; i++) {
-    stars.push(createStar(canvasWidth, canvasHeight));
+    stars.push(createStar(canvasWidth, canvasHeight, stage));
   }
   spaceship.x = canvasWidth / 2 - spaceship.width / 2;
   spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
@@ -323,7 +326,7 @@ function update() {
   updateMissiles();
   updatePortal();
   updateExplosions();
-  updateStars(stars, canvasWidth, canvasHeight);
+  updateStars(stars, canvasWidth, canvasHeight, stage);
   checkCollisions();
   checkPortalCollision();
 }
@@ -349,6 +352,13 @@ function draw() {
   drawExplosions(ctx);
 
   drawTopInfo(ctx, playerName, score, lives, topScore, canvasWidth);
+
+  if (levelTransition) {
+    ctx.fillStyle = 'white';
+    ctx.font = '64px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Stage ${stage + 1}`, canvasWidth / 2, canvasHeight / 2);
+  }
 
   if (paused && !gameOver) {
     ctx.font = '48px sans-serif';
