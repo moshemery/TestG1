@@ -7,6 +7,8 @@ export interface Obstacle {
   height: number;
   speed: number;
   isBoss: boolean;
+  /** Whether this obstacle uses the stage 3 sprite */
+  isEnemy3?: boolean;
 }
 
 export interface Missile {
@@ -20,7 +22,11 @@ export interface Missile {
 export const obstacles: Obstacle[] = [];
 export const missiles: Missile[] = [];
 
-export function spawnObstacle(canvasWidth: number, spawnsUntilBoss: { value: number }) {
+export function spawnObstacle(
+  canvasWidth: number,
+  spawnsUntilBoss: { value: number },
+  stage: number
+) {
   const width = 40;
   const height = 40;
   const x = Math.random() * (canvasWidth - width);
@@ -30,7 +36,12 @@ export function spawnObstacle(canvasWidth: number, spawnsUntilBoss: { value: num
   if (isBoss) {
     spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
   }
-  obstacles.push({ x, y: -height, width, height, speed, isBoss });
+  let isEnemy3 = false;
+  if (!isBoss && stage >= 3) {
+    // 30% chance to use the new enemy sprite
+    isEnemy3 = Math.random() < 0.3;
+  }
+  obstacles.push({ x, y: -height, width, height, speed, isBoss, isEnemy3 });
 }
 
 export function fireMissile(ship: Spaceship, laserSound: HTMLAudioElement) {
@@ -73,8 +84,18 @@ export function drawMissiles(ctx: CanvasRenderingContext2D) {
   });
 }
 
-export function drawObstacles(ctx: CanvasRenderingContext2D, enemyImage: HTMLImageElement, bossImage: HTMLImageElement) {
+export function drawObstacles(
+  ctx: CanvasRenderingContext2D,
+  enemyImage: HTMLImageElement,
+  bossImage: HTMLImageElement,
+  enemy3Image: HTMLImageElement
+) {
   obstacles.forEach(o => {
-    ctx.drawImage(o.isBoss ? bossImage : enemyImage, o.x, o.y, o.width, o.height);
+    const img = o.isBoss
+      ? bossImage
+      : o.isEnemy3
+      ? enemy3Image
+      : enemyImage;
+    ctx.drawImage(img, o.x, o.y, o.width, o.height);
   });
 }
