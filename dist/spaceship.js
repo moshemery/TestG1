@@ -4,7 +4,8 @@ export class Spaceship {
         this.canvasHeight = canvasHeight;
         this.width = 40;
         this.height = 60;
-        this.speed = 9;
+        // Increase speed by roughly 30% for snappier keyboard control
+        this.speed = 12;
         this.x = canvasWidth / 2 - this.width / 2;
         this.y = canvasHeight - this.height - 10;
     }
