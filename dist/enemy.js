@@ -1,6 +1,6 @@
 export const obstacles = [];
 export const missiles = [];
-export function spawnObstacle(canvasWidth, spawnsUntilBoss) {
+export function spawnObstacle(canvasWidth, spawnsUntilBoss, stage) {
     const width = 40;
     const height = 40;
     const x = Math.random() * (canvasWidth - width);
@@ -10,7 +10,12 @@ export function spawnObstacle(canvasWidth, spawnsUntilBoss) {
     if (isBoss) {
         spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
     }
-    obstacles.push({ x, y: -height, width, height, speed, isBoss });
+    let isEnemy3 = false;
+    if (!isBoss && stage >= 3) {
+        // 30% chance to use the new enemy sprite
+        isEnemy3 = Math.random() < 0.3;
+    }
+    obstacles.push({ x, y: -height, width, height, speed, isBoss, isEnemy3 });
 }
 export function fireMissile(ship, laserSound) {
     const width = 5;
@@ -48,8 +53,13 @@ export function drawMissiles(ctx) {
         ctx.fillRect(m.x, m.y, m.width, m.height);
     });
 }
-export function drawObstacles(ctx, enemyImage, bossImage) {
+export function drawObstacles(ctx, enemyImage, bossImage, enemy3Image) {
     obstacles.forEach(o => {
-        ctx.drawImage(o.isBoss ? bossImage : enemyImage, o.x, o.y, o.width, o.height);
+        const img = o.isBoss
+            ? bossImage
+            : o.isEnemy3
+                ? enemy3Image
+                : enemyImage;
+        ctx.drawImage(img, o.x, o.y, o.width, o.height);
     });
 }

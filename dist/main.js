@@ -18,6 +18,8 @@ const friendImage = new Image();
 friendImage.src = 'resources/friend.png';
 const enemyImage = new Image();
 enemyImage.src = 'resources/enemy.png';
+const enemy3Image = new Image();
+enemy3Image.src = 'resources/enemy3.png';
 const bossImage = new Image();
 bossImage.src = 'resources/boss.png';
 const portalImage = new Image();
@@ -229,7 +231,12 @@ function checkCollisions() {
                 spawnExplosion(o.x + o.width / 2, o.y + o.height / 2);
                 obstacles.splice(oi, 1);
                 missiles.splice(mi, 1);
-                score += 1 + (o.isBoss ? 10 : 0);
+                let points = 1;
+                if (o.isBoss)
+                    points += 10;
+                if (o.isEnemy3)
+                    points += 1; // enemy3 gives total 2 points
+                score += points;
                 if (score >= nextLifeScore) {
                     lives++;
                     nextLifeScore += 10;
@@ -263,7 +270,7 @@ function update() {
     if (gameOver || paused)
         return;
     if (Math.random() < 0.02) {
-        spawnObstacle(canvasWidth, spawnsUntilBoss);
+        spawnObstacle(canvasWidth, spawnsUntilBoss, stage);
     }
     if (score >= nextPortalScore && !portal) {
         spawnPortal();
@@ -290,7 +297,7 @@ function draw() {
         });
     }
     drawMissiles(ctx);
-    drawObstacles(ctx, enemyImage, bossImage);
+    drawObstacles(ctx, enemyImage, bossImage, enemy3Image);
     drawPortal(ctx);
     drawExplosions(ctx);
     drawTopInfo(ctx, playerName, score, lives, topScore, canvasWidth);
