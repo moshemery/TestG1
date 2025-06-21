@@ -390,7 +390,7 @@ function update() {
   }
 
   if (stage >= 2 && Math.random() < 0.005) {
-    spawnAsteroid(canvasWidth, canvasHeight);
+    spawnAsteroid(canvasWidth);
   }
 
   if (score >= nextPortalScore && !portal) {
@@ -398,7 +398,7 @@ function update() {
   }
 
   updateObstacles(canvasHeight);
-  updateAsteroids(canvasWidth);
+  updateAsteroids(canvasWidth, canvasHeight);
   updateMissiles();
   updatePortal();
   updateExplosions();
