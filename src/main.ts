@@ -28,6 +28,11 @@ const ctx = canvas.getContext('2d')!;
 const canvasWidth = (canvas.width = window.innerWidth);
 const canvasHeight = (canvas.height = window.innerHeight);
 
+// Determine whether demo mode is active based on query parameter
+const params = new URLSearchParams(window.location.search);
+const demoMode = params.get('DemoMode') === 'true';
+const portalInterval = demoMode ? 10 : 100;
+
 const PLAYER_NAME_KEY = 'playerName';
 const HIGH_SCORE_KEY = 'highScore';
 let playerName: string | null = localStorage.getItem(PLAYER_NAME_KEY);
@@ -51,6 +56,8 @@ const laserSound = new Audio('resources/laser-zap-90575.mp3');
 const hitSound = new Audio('resources/explosion-322491.mp3');
 
 const spaceship = new Spaceship(canvasWidth, canvasHeight);
+// Keyboard controls move the ship twice as far per key press
+const KEYBOARD_SPEED_MULTIPLIER = 2;
 let stage = 1;
 const stars: Star[] = [];
 for (let i = 0; i < 100; i++) {
@@ -74,7 +81,7 @@ interface Portal {
   speed: number;
 }
 let portal: Portal | null = null;
-let nextPortalScore = 100;
+let nextPortalScore = portalInterval;
 let levelTransition = false;
 
 interface ExplosionPiece {
@@ -121,6 +128,7 @@ function resetGame() {
   nextLifeScore = 10;
   spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
   explosionTimer = 0;
+  nextPortalScore = portalInterval;
   scoreboard.style.display = 'none';
   canvas.style.cursor = 'default';
 }
@@ -141,7 +149,7 @@ function startNextLevel() {
   freezeEnvironment = false;
   levelTransition = false;
   portal = null;
-  nextPortalScore += 100;
+  nextPortalScore += portalInterval;
 }
 
 function startShipExplosion() {
@@ -466,8 +474,8 @@ window.addEventListener('keydown', e => {
     return;
   }
   if (paused) return;
-  if (e.key === 'ArrowLeft') spaceship.moveLeft();
-  if (e.key === 'ArrowRight') spaceship.moveRight();
+  if (e.key === 'ArrowLeft') spaceship.moveLeft(KEYBOARD_SPEED_MULTIPLIER);
+  if (e.key === 'ArrowRight') spaceship.moveRight(KEYBOARD_SPEED_MULTIPLIER);
   if (e.code === 'Space') fireMissile(spaceship, laserSound);
 });
 
