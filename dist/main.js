@@ -330,13 +330,13 @@ function update() {
         spawnObstacle(canvasWidth, spawnsUntilBoss, stage);
     }
     if (stage >= 2 && Math.random() < 0.005) {
-        spawnAsteroid(canvasWidth, canvasHeight);
+        spawnAsteroid(canvasWidth);
     }
     if (score >= nextPortalScore && !portal) {
         spawnPortal();
     }
     updateObstacles(canvasHeight);
-    updateAsteroids(canvasWidth);
+    updateAsteroids(canvasWidth, canvasHeight);
     updateMissiles();
     updatePortal();
     updateExplosions();
