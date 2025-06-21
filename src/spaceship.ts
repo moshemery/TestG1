@@ -11,12 +11,15 @@ export class Spaceship {
     this.y = canvasHeight - this.height - 10;
   }
 
-  moveLeft() {
-    this.x = Math.max(0, this.x - this.speed);
+  moveLeft(multiplier = 1) {
+    this.x = Math.max(0, this.x - this.speed * multiplier);
   }
 
-  moveRight() {
-    this.x = Math.min(this.canvasWidth - this.width, this.x + this.speed);
+  moveRight(multiplier = 1) {
+    this.x = Math.min(
+      this.canvasWidth - this.width,
+      this.x + this.speed * multiplier
+    );
   }
 }
 
