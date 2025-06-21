@@ -9,11 +9,11 @@ export class Spaceship {
         this.x = canvasWidth / 2 - this.width / 2;
         this.y = canvasHeight - this.height - 10;
     }
-    moveLeft() {
-        this.x = Math.max(0, this.x - this.speed);
+    moveLeft(multiplier = 1) {
+        this.x = Math.max(0, this.x - this.speed * multiplier);
     }
-    moveRight() {
-        this.x = Math.min(this.canvasWidth - this.width, this.x + this.speed);
+    moveRight(multiplier = 1) {
+        this.x = Math.min(this.canvasWidth - this.width, this.x + this.speed * multiplier);
     }
 }
 export function drawSpaceship(ctx, ship, img) {

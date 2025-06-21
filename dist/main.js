@@ -11,6 +11,10 @@ const nameInput = document.getElementById('username-input');
 const ctx = canvas.getContext('2d');
 const canvasWidth = (canvas.width = window.innerWidth);
 const canvasHeight = (canvas.height = window.innerHeight);
+// Determine whether demo mode is active based on query parameter
+const params = new URLSearchParams(window.location.search);
+const demoMode = params.get('DemoMode') === 'true';
+const portalInterval = demoMode ? 10 : 100;
 const PLAYER_NAME_KEY = 'playerName';
 const HIGH_SCORE_KEY = 'highScore';
 let playerName = localStorage.getItem(PLAYER_NAME_KEY);
@@ -31,6 +35,8 @@ const explosionSound = new Audio('resources/explosion-80108.mp3');
 const laserSound = new Audio('resources/laser-zap-90575.mp3');
 const hitSound = new Audio('resources/explosion-322491.mp3');
 const spaceship = new Spaceship(canvasWidth, canvasHeight);
+// Keyboard controls move the ship twice as far per key press
+const KEYBOARD_SPEED_MULTIPLIER = 2;
 let stage = 1;
 const stars = [];
 for (let i = 0; i < 100; i++) {
@@ -43,7 +49,7 @@ let score = 0;
 let lives = 3;
 let nextLifeScore = 10;
 let portal = null;
-let nextPortalScore = 100;
+let nextPortalScore = portalInterval;
 let levelTransition = false;
 let enemyExplosions = [];
 let shipPieces = [];
@@ -70,6 +76,7 @@ function resetGame() {
     nextLifeScore = 10;
     spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
     explosionTimer = 0;
+    nextPortalScore = portalInterval;
     scoreboard.style.display = 'none';
     canvas.style.cursor = 'default';
 }
@@ -89,7 +96,7 @@ function startNextLevel() {
     freezeEnvironment = false;
     levelTransition = false;
     portal = null;
-    nextPortalScore += 100;
+    nextPortalScore += portalInterval;
 }
 function startShipExplosion() {
     shipPieces = [];
@@ -398,9 +405,9 @@ window.addEventListener('keydown', e => {
     if (paused)
         return;
     if (e.key === 'ArrowLeft')
-        spaceship.moveLeft();
+        spaceship.moveLeft(KEYBOARD_SPEED_MULTIPLIER);
     if (e.key === 'ArrowRight')
-        spaceship.moveRight();
+        spaceship.moveRight(KEYBOARD_SPEED_MULTIPLIER);
     if (e.code === 'Space')
         fireMissile(spaceship, laserSound);
 });
