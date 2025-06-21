@@ -16,8 +16,10 @@ export function spawnAsteroid(canvasWidth: number) {
   const height = 40;
   const x = Math.random() * (canvasWidth - width);
   const y = -height;
-  const speedY = 3 + Math.random() * 2;
-  const speedX = (Math.random() - 0.5) * 2; // slight horizontal drift
+  // Asteroids move twice as fast as regular enemies and
+  // have a wider horizontal drift for more dramatic angles
+  const speedY = 8 + Math.random() * 4; // 2x enemy speed (8 - 12)
+  const speedX = (Math.random() - 0.5) * 8; // greater left/right movement
   asteroids.push({ x, y, width, height, speedX, speedY });
 }
 
@@ -38,7 +40,9 @@ export function drawAsteroids(ctx: CanvasRenderingContext2D, img: HTMLImageEleme
     const cx = a.x + a.width / 2;
     const cy = a.y + a.height / 2;
     ctx.translate(cx, cy);
-    const angle = Math.atan2(a.speedX, a.speedY);
+    // Rotate the asteroid in the direction of its velocity so
+    // the trailing part of the sprite aligns with its movement
+    const angle = Math.atan2(a.speedY, a.speedX);
     ctx.rotate(angle);
     ctx.drawImage(img, -a.width / 2, -a.height / 2, a.width, a.height);
     ctx.restore();
