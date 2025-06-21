@@ -1,6 +1,7 @@
 import { Spaceship, drawSpaceship } from './spaceship.js';
 import { createStar, updateStars, drawStars } from './background.js';
 import { obstacles, missiles, spawnObstacle, fireMissile, updateObstacles, updateMissiles, drawMissiles, drawObstacles, } from './enemy.js';
+import { asteroids, spawnAsteroid, updateAsteroids, drawAsteroids, } from './asteroid.js';
 import { scoreboard, sendScoreToAirtable, fetchTopScores, displayScores } from './scoreboard.js';
 import { drawTopInfo } from './topInfo.js';
 const canvas = document.getElementById('game');
@@ -24,6 +25,8 @@ const bossImage = new Image();
 bossImage.src = 'resources/boss.png';
 const portalImage = new Image();
 portalImage.src = 'resources/Portal2.png';
+const asteroidImage = new Image();
+asteroidImage.src = 'resources/stroid2.jpeg';
 const explosionSound = new Audio('resources/explosion-80108.mp3');
 const laserSound = new Audio('resources/laser-zap-90575.mp3');
 const hitSound = new Audio('resources/explosion-322491.mp3');
@@ -33,6 +36,7 @@ const stars = [];
 for (let i = 0; i < 100; i++) {
     stars.push(createStar(canvasWidth, canvasHeight, stage));
 }
+// flying asteroids introduced in later stages
 let gameOver = false;
 let paused = false;
 let score = 0;
@@ -49,6 +53,7 @@ const spawnsUntilBoss = { value: Math.floor(Math.random() * 11) + 20 };
 function resetGame() {
     obstacles.length = 0;
     missiles.length = 0;
+    asteroids.length = 0;
     shipPieces.length = 0;
     enemyExplosions.length = 0;
     freezeEnvironment = false;
@@ -71,6 +76,7 @@ function resetGame() {
 function startNextLevel() {
     obstacles.length = 0;
     missiles.length = 0;
+    asteroids.length = 0;
     shipPieces.length = 0;
     enemyExplosions.length = 0;
     stage++;
@@ -217,6 +223,36 @@ function checkCollisions() {
             break;
         }
     }
+    for (let ai = asteroids.length - 1; ai >= 0; ai--) {
+        const a = asteroids[ai];
+        const collide = spaceship.x < a.x + a.width &&
+            spaceship.x + spaceship.width > a.x &&
+            spaceship.y < a.y + a.height &&
+            spaceship.y + spaceship.height > a.y;
+        if (collide) {
+            explosionSound.currentTime = 0;
+            explosionSound.play();
+            startShipExplosion();
+            asteroids.splice(ai, 1);
+            lives--;
+            if (lives <= 0) {
+                gameOver = true;
+                canvas.style.cursor = 'pointer';
+                const storedHigh = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+                if (score > storedHigh) {
+                    localStorage.setItem(HIGH_SCORE_KEY, String(score));
+                    topScore = score;
+                }
+                else {
+                    topScore = storedHigh;
+                }
+                sendScoreToAirtable(score, playerName)
+                    .then(fetchTopScores)
+                    .then(displayScores);
+            }
+            break;
+        }
+    }
     for (let mi = missiles.length - 1; mi >= 0; mi--) {
         const m = missiles[mi];
         for (let oi = obstacles.length - 1; oi >= 0; oi--) {
@@ -241,6 +277,20 @@ function checkCollisions() {
                     lives++;
                     nextLifeScore += 10;
                 }
+                break;
+            }
+        }
+        for (let ai = asteroids.length - 1; ai >= 0; ai--) {
+            const a = asteroids[ai];
+            const hit = m.x < a.x + a.width &&
+                m.x + m.width > a.x &&
+                m.y < a.y + a.height &&
+                m.y + m.height > a.y;
+            if (hit) {
+                hitSound.currentTime = 0;
+                hitSound.play();
+                spawnExplosion(a.x + a.width / 2, a.y + a.height / 2);
+                missiles.splice(mi, 1);
                 break;
             }
         }
@@ -272,10 +322,14 @@ function update() {
     if (Math.random() < 0.02) {
         spawnObstacle(canvasWidth, spawnsUntilBoss, stage);
     }
+    if (stage >= 2 && Math.random() < 0.005) {
+        spawnAsteroid(canvasWidth, canvasHeight);
+    }
     if (score >= nextPortalScore && !portal) {
         spawnPortal();
     }
     updateObstacles(canvasHeight);
+    updateAsteroids(canvasWidth);
     updateMissiles();
     updatePortal();
     updateExplosions();
@@ -298,6 +352,7 @@ function draw() {
     }
     drawMissiles(ctx);
     drawObstacles(ctx, enemyImage, bossImage, enemy3Image);
+    drawAsteroids(ctx, asteroidImage);
     drawPortal(ctx);
     drawExplosions(ctx);
     drawTopInfo(ctx, playerName, score, lives, topScore, canvasWidth);
