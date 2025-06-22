@@ -1,8 +1,9 @@
+import { SCALE } from './config.js';
 export const obstacles = [];
 export const missiles = [];
 export function spawnObstacle(canvasWidth, spawnsUntilBoss, stage) {
-    const width = 40;
-    const height = 40;
+    const width = 40 * SCALE;
+    const height = 40 * SCALE;
     const x = Math.random() * (canvasWidth - width);
     const speed = 4 + Math.random() * 2;
     spawnsUntilBoss.value--;
@@ -18,8 +19,8 @@ export function spawnObstacle(canvasWidth, spawnsUntilBoss, stage) {
     obstacles.push({ x, y: -height, width, height, speed, isBoss, isEnemy3 });
 }
 export function fireMissile(ship, laserSound) {
-    const width = 5;
-    const height = 10;
+    const width = 5 * SCALE;
+    const height = 10 * SCALE;
     const x = ship.x + ship.width / 2 - width / 2;
     const y = ship.y - height;
     const speed = 10;

@@ -1,7 +1,8 @@
+import { SCALE } from './config.js';
 export const asteroids = [];
 export function spawnAsteroid(canvasWidth) {
-    const width = 60;
-    const height = 40;
+    const width = 60 * SCALE;
+    const height = 40 * SCALE;
     const x = Math.random() * (canvasWidth - width);
     const y = -height;
     // Asteroids move twice as fast as regular enemies and
