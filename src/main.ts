@@ -486,8 +486,8 @@ function draw() {
     displayCtx.fillStyle = 'black';
     displayCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const marginX = canvas.width * 0.1;
-    const marginY = canvas.height * 0.1;
+    const marginX = canvas.width * 0.15;
+    const marginY = canvas.height * 0.15;
     const viewWidth = (canvas.width - marginX * 3) / 2;
     const viewHeight = canvas.height - marginY * 2;
 
@@ -556,8 +556,9 @@ window.addEventListener('click', () => {
 window.addEventListener('deviceorientation', e => {
   if (gameOver || paused) return;
   const isLandscape = window.innerWidth > window.innerHeight;
-  const tilt = isLandscape ? e.beta : e.gamma;
+  let tilt = isLandscape ? e.beta : e.gamma;
   if (tilt == null) return;
+  if (vrMode) tilt = -tilt;
   const threshold = 10;
   if (tilt > threshold) {
     spaceship.moveRight();
