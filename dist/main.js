@@ -2,7 +2,7 @@ import { Spaceship, drawSpaceship } from './spaceship.js';
 import { createStar, updateStars, drawStars } from './background.js';
 import { obstacles, missiles, spawnObstacle, fireMissile, updateObstacles, updateMissiles, drawMissiles, drawObstacles, } from './enemy.js';
 import { asteroids, spawnAsteroid, updateAsteroids, drawAsteroids, } from './asteroid.js';
-import { scoreboard, sendScoreToAirtable, fetchTopScores, displayScores } from './scoreboard.js';
+import { scoreboard, scoreboardRight, sendScoreToAirtable, fetchTopScores, displayScores, } from './scoreboard.js';
 import { drawTopInfo } from './topInfo.js';
 import { vrMode, SCALE } from './config.js';
 const canvas = document.getElementById('game');
@@ -35,6 +35,18 @@ const PLAYER_NAME_KEY = 'playerName';
 const HIGH_SCORE_KEY = 'highScore';
 let playerName = localStorage.getItem(PLAYER_NAME_KEY);
 let topScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+// Track asynchronous scoreboard requests so stale results don't reappear
+let scoreboardSession = 0;
+function showScoreboard(finalScore) {
+    const session = ++scoreboardSession;
+    sendScoreToAirtable(finalScore, playerName)
+        .then(fetchTopScores)
+        .then(records => {
+        if (session === scoreboardSession) {
+            displayScores(records);
+        }
+    });
+}
 const friendImage = new Image();
 friendImage.src = 'resources/friend.png';
 const enemyImage = new Image();
@@ -93,7 +105,10 @@ function resetGame() {
     spawnsUntilBoss.value = Math.floor(Math.random() * 11) + 20;
     explosionTimer = 0;
     nextPortalScore = portalInterval;
+    scoreboardSession++;
     scoreboard.style.display = 'none';
+    if (scoreboardRight)
+        scoreboardRight.style.display = 'none';
     canvas.style.cursor = 'default';
 }
 function startNextLevel() {
@@ -239,9 +254,7 @@ function checkCollisions() {
                 else {
                     topScore = storedHigh;
                 }
-                sendScoreToAirtable(score, playerName)
-                    .then(fetchTopScores)
-                    .then(displayScores);
+                showScoreboard(score);
             }
             break;
         }
@@ -269,9 +282,7 @@ function checkCollisions() {
                 else {
                     topScore = storedHigh;
                 }
-                sendScoreToAirtable(score, playerName)
-                    .then(fetchTopScores)
-                    .then(displayScores);
+                showScoreboard(score);
             }
             break;
         }

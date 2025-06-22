@@ -7,8 +7,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { vrMode } from './config.js';
 export const scoreboard = document.getElementById('scoreboard');
 const scoreTable = document.getElementById('score-table');
+export let scoreboardRight = null;
+let scoreTableRight = null;
+if (vrMode) {
+    scoreboard.style.left = '25%';
+    scoreboardRight = scoreboard.cloneNode(true);
+    scoreboardRight.id = 'scoreboard-right';
+    scoreboardRight.style.left = '75%';
+    document.body.appendChild(scoreboardRight);
+    scoreTableRight = scoreboardRight.querySelector('table');
+    if (scoreTableRight) {
+        scoreTableRight.id = 'score-table-right';
+    }
+}
 const AIRTABLE_API_KEY = 'patipkX905rbyd9jI.5f1856e68ce599923e05fc3423c5f5d61805a64ae757bfdf0595e36267f401da';
 const AIRTABLE_BASE_ID = 'app2CnjHccmeNtrXz';
 const AIRTABLE_TABLE_NAME = 'Game Scores';
@@ -84,12 +98,20 @@ export function fetchUserTopScore(name) {
     });
 }
 export function displayScores(records) {
-    scoreTable.innerHTML = '<tr><th>Name</th><th>Score</th><th>Date of Play</th></tr>';
-    records.forEach((r) => {
-        const fields = r.fields;
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${fields.Name}</td><td>${fields.Score}</td><td>${fields['Date of Play']}</td>`;
-        scoreTable.appendChild(row);
-    });
+    const populate = (table) => {
+        if (!table)
+            return;
+        table.innerHTML = '<tr><th>Name</th><th>Score</th><th>Date of Play</th></tr>';
+        records.forEach((r) => {
+            const fields = r.fields;
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${fields.Name}</td><td>${fields.Score}</td><td>${fields['Date of Play']}</td>`;
+            table.appendChild(row);
+        });
+    };
+    populate(scoreTable);
+    populate(scoreTableRight);
     scoreboard.style.display = 'block';
+    if (scoreboardRight)
+        scoreboardRight.style.display = 'block';
 }
