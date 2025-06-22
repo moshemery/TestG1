@@ -406,12 +406,18 @@ function draw() {
         ctx.lineTo(canvasWidth / 2 + textWidth / 2, canvasHeight / 2 + 5);
         ctx.stroke();
     }
-    // In VR mode copy the offscreen canvas to both halves of the screen
+    // In VR mode copy the offscreen canvas to two slightly smaller areas on the
+    // screen with margins. This provides a more comfortable view when a phone is
+    // placed in a headset.
     if (vrMode && offscreenCanvas) {
         displayCtx.fillStyle = 'black';
         displayCtx.fillRect(0, 0, canvas.width, canvas.height);
-        displayCtx.drawImage(offscreenCanvas, 0, 0, canvasWidth, canvasHeight);
-        displayCtx.drawImage(offscreenCanvas, canvasWidth, 0, canvasWidth, canvasHeight);
+        const marginX = canvas.width * 0.1;
+        const marginY = canvas.height * 0.1;
+        const viewWidth = (canvas.width - marginX * 3) / 2;
+        const viewHeight = canvas.height - marginY * 2;
+        displayCtx.drawImage(offscreenCanvas, marginX, marginY, viewWidth, viewHeight);
+        displayCtx.drawImage(offscreenCanvas, marginX * 2 + viewWidth, marginY, viewWidth, viewHeight);
     }
 }
 function loop() {
@@ -459,16 +465,22 @@ window.addEventListener('click', () => {
         return;
     fireMissile(spaceship, laserSound);
 });
+// Allow tilting the device to steer the ship. When the device is held
+// horizontally the `gamma` value no longer represents the left/right tilt, so
+// we switch to using `beta` instead. This ensures the ship can be moved in both
+// portrait and landscape orientations.
 window.addEventListener('deviceorientation', e => {
     if (gameOver || paused)
         return;
-    if (e.gamma == null)
+    const isLandscape = window.innerWidth > window.innerHeight;
+    const tilt = isLandscape ? e.beta : e.gamma;
+    if (tilt == null)
         return;
     const threshold = 10;
-    if (e.gamma > threshold) {
+    if (tilt > threshold) {
         spaceship.moveRight();
     }
-    else if (e.gamma < -threshold) {
+    else if (tilt < -threshold) {
         spaceship.moveLeft();
     }
 });
