@@ -1,3 +1,5 @@
+import { SCALE } from './config.js';
+
 export interface Asteroid {
   x: number;
   y: number;
@@ -12,8 +14,8 @@ export interface Asteroid {
 export const asteroids: Asteroid[] = [];
 
 export function spawnAsteroid(canvasWidth: number) {
-  const width = 60;
-  const height = 40;
+  const width = 60 * SCALE;
+  const height = 40 * SCALE;
   const x = Math.random() * (canvasWidth - width);
   const y = -height;
   // Asteroids move twice as fast as regular enemies and

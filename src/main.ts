@@ -18,15 +18,13 @@ import {
 } from './asteroid.js';
 import { scoreboard, sendScoreToAirtable, fetchTopScores, displayScores } from './scoreboard.js';
 import { drawTopInfo } from './topInfo.js';
+import { vrMode, SCALE } from './config.js';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const nameModal = document.getElementById('name-modal') as HTMLDivElement;
 const nameForm = document.getElementById('name-form') as HTMLFormElement;
 const nameInput = document.getElementById('username-input') as HTMLInputElement;
 
-// Detect VR mode when running on a mobile device in landscape orientation
-const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-const vrMode = isMobile && window.innerWidth > window.innerHeight;
 
 // Display context always refers to the on-screen canvas
 const displayCtx = canvas.getContext('2d')!;
@@ -245,8 +243,8 @@ function drawExplosions(ctx: CanvasRenderingContext2D) {
 }
 
 function spawnPortal() {
-  const width = 80;
-  const height = 80;
+  const width = 80 * SCALE;
+  const height = 80 * SCALE;
   const x = Math.random() * (canvasWidth - width);
   const speed = 3;
   portal = { x, y: -height, width, height, speed };

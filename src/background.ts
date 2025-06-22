@@ -1,3 +1,5 @@
+import { SCALE } from './config.js';
+
 export interface Star {
   x: number;
   y: number;
@@ -14,7 +16,7 @@ export function createStar(
   const base = {
     x: Math.random() * canvasWidth,
     y: Math.random() * canvasHeight,
-    size: Math.random() * 2 + 1,
+    size: (Math.random() * 2 + 1) * SCALE,
     speed: Math.random() * 1 + 0.5,
   };
   const colors = ['white', 'blue', 'red', 'yellow'];
