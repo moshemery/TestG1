@@ -23,10 +23,33 @@ const canvas = document.getElementById('game') as HTMLCanvasElement;
 const nameModal = document.getElementById('name-modal') as HTMLDivElement;
 const nameForm = document.getElementById('name-form') as HTMLFormElement;
 const nameInput = document.getElementById('username-input') as HTMLInputElement;
-const ctx = canvas.getContext('2d')!;
 
-const canvasWidth = (canvas.width = window.innerWidth);
-const canvasHeight = (canvas.height = window.innerHeight);
+// Detect VR mode when running on a mobile device in landscape orientation
+const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+const vrMode = isMobile && window.innerWidth > window.innerHeight;
+
+// Display context always refers to the on-screen canvas
+const displayCtx = canvas.getContext('2d')!;
+
+// The actual game may render to an offscreen canvas when VR mode is active
+let ctx: CanvasRenderingContext2D = displayCtx;
+
+// Logical game dimensions. In VR mode the game renders at half the screen width
+const canvasWidth = vrMode ? window.innerWidth / 2 : window.innerWidth;
+const canvasHeight = window.innerHeight;
+
+// Resize the visible canvas to fill the screen
+canvas.width = vrMode ? window.innerWidth : canvasWidth;
+canvas.height = canvasHeight;
+
+// If in VR mode create an offscreen canvas to render the game once
+let offscreenCanvas: HTMLCanvasElement | null = null;
+if (vrMode) {
+  offscreenCanvas = document.createElement('canvas');
+  offscreenCanvas.width = canvasWidth;
+  offscreenCanvas.height = canvasHeight;
+  ctx = offscreenCanvas.getContext('2d')!;
+}
 
 // Determine whether demo mode is active based on query parameter
 const params = new URLSearchParams(window.location.search);
@@ -457,6 +480,20 @@ function draw() {
     ctx.lineTo(canvasWidth / 2 + textWidth / 2, canvasHeight / 2 + 5);
     ctx.stroke();
   }
+
+  // In VR mode copy the offscreen canvas to both halves of the screen
+  if (vrMode && offscreenCanvas) {
+    displayCtx.fillStyle = 'black';
+    displayCtx.fillRect(0, 0, canvas.width, canvas.height);
+    displayCtx.drawImage(offscreenCanvas, 0, 0, canvasWidth, canvasHeight);
+    displayCtx.drawImage(
+      offscreenCanvas,
+      canvasWidth,
+      0,
+      canvasWidth,
+      canvasHeight
+    );
+  }
 }
 
 function loop() {
@@ -486,7 +523,8 @@ window.addEventListener('touchstart', e => {
   }
   if (paused) return;
   const touch = e.touches[0];
-  if (touch.clientX < canvasWidth / 2) spaceship.moveLeft();
+  const half = vrMode ? window.innerWidth / 2 : canvasWidth / 2;
+  if (touch.clientX < half) spaceship.moveLeft();
   else spaceship.moveRight();
 });
 
