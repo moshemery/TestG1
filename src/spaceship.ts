@@ -1,10 +1,12 @@
+import { vrMode, SCALE } from './config.js';
+
 export class Spaceship {
-  width = 40;
-  height = 60;
+  width = 40 * SCALE;
+  height = 60 * SCALE;
   x: number;
   y: number;
-  // Increase speed by roughly 30% for snappier keyboard control
-  speed = 12;
+  // Base speed adjusted when VR mode is active
+  speed = 12 * (vrMode ? 0.7 : 1);
 
   constructor(private canvasWidth: number, private canvasHeight: number) {
     this.x = canvasWidth / 2 - this.width / 2;

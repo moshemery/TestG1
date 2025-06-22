@@ -1,4 +1,5 @@
 import { Spaceship } from './spaceship.js';
+import { SCALE } from './config.js';
 
 export interface Obstacle {
   x: number;
@@ -27,8 +28,8 @@ export function spawnObstacle(
   spawnsUntilBoss: { value: number },
   stage: number
 ) {
-  const width = 40;
-  const height = 40;
+  const width = 40 * SCALE;
+  const height = 40 * SCALE;
   const x = Math.random() * (canvasWidth - width);
   const speed = 4 + Math.random() * 2;
   spawnsUntilBoss.value--;
@@ -45,8 +46,8 @@ export function spawnObstacle(
 }
 
 export function fireMissile(ship: Spaceship, laserSound: HTMLAudioElement) {
-  const width = 5;
-  const height = 10;
+  const width = 5 * SCALE;
+  const height = 10 * SCALE;
   const x = ship.x + ship.width / 2 - width / 2;
   const y = ship.y - height;
   const speed = 10;
