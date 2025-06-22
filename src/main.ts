@@ -576,12 +576,28 @@ window.addEventListener('deviceorientation', e => {
   const isLandscape = window.innerWidth > window.innerHeight;
   let tilt = isLandscape ? e.beta : e.gamma;
   if (tilt == null) return;
-  if (vrMode) tilt = -tilt;
   const threshold = 10;
-  if (tilt > threshold) {
-    spaceship.moveRight();
-  } else if (tilt < -threshold) {
-    spaceship.moveLeft();
+
+  if (vrMode) {
+    // In VR mode turning your head right should move the ship right, so we do
+    // not invert the tilt as before. Movement speed scales with how far the
+    // device is tilted.
+    const maxTilt = 45;
+    if (tilt > threshold) {
+      const multiplier =
+        1 + Math.min((tilt - threshold) / (maxTilt - threshold), 1);
+      spaceship.moveRight(multiplier);
+    } else if (tilt < -threshold) {
+      const multiplier =
+        1 + Math.min((-tilt - threshold) / (maxTilt - threshold), 1);
+      spaceship.moveLeft(multiplier);
+    }
+  } else {
+    if (tilt > threshold) {
+      spaceship.moveRight();
+    } else if (tilt < -threshold) {
+      spaceship.moveLeft();
+    }
   }
 });
 
