@@ -10,6 +10,8 @@ export interface Obstacle {
   isBoss: boolean;
   /** Whether this obstacle uses the stage 3 sprite */
   isEnemy3?: boolean;
+  /** New enemy type that appears from stage 1 */
+  isBos4?: boolean;
 }
 
 export interface Missile {
@@ -22,6 +24,7 @@ export interface Missile {
 
 export const obstacles: Obstacle[] = [];
 export const missiles: Missile[] = [];
+export const enemyShots: Missile[] = [];
 
 export function spawnObstacle(
   canvasWidth: number,
@@ -42,7 +45,20 @@ export function spawnObstacle(
     // 30% chance to use the new enemy sprite
     isEnemy3 = Math.random() < 0.3;
   }
-  obstacles.push({ x, y: -height, width, height, speed, isBoss, isEnemy3 });
+  let isBos4 = false;
+  if (!isBoss && Math.random() < 0.1) {
+    isBos4 = true;
+  }
+  obstacles.push({
+    x,
+    y: -height,
+    width,
+    height,
+    speed,
+    isBoss,
+    isEnemy3,
+    isBos4,
+  });
 }
 
 export function fireMissile(ship: Spaceship, laserSound: HTMLAudioElement) {
@@ -59,6 +75,14 @@ export function fireMissile(ship: Spaceship, laserSound: HTMLAudioElement) {
 export function updateObstacles(canvasHeight: number) {
   obstacles.forEach(o => {
     o.y += o.speed;
+    if (o.isBos4 && Math.random() < 0.02) {
+      const width = 5 * SCALE;
+      const height = 10 * SCALE;
+      const x = o.x + o.width / 2 - width / 2;
+      const y = o.y + o.height;
+      const speed = 8;
+      enemyShots.push({ x, y, width, height, speed });
+    }
   });
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
@@ -78,6 +102,16 @@ export function updateMissiles() {
   }
 }
 
+export function updateEnemyShots(canvasHeight: number) {
+  for (let i = enemyShots.length - 1; i >= 0; i--) {
+    const s = enemyShots[i];
+    s.y += s.speed;
+    if (s.y > canvasHeight) {
+      enemyShots.splice(i, 1);
+    }
+  }
+}
+
 export function drawMissiles(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = 'yellow';
   missiles.forEach(m => {
@@ -85,15 +119,25 @@ export function drawMissiles(ctx: CanvasRenderingContext2D) {
   });
 }
 
+export function drawEnemyShots(ctx: CanvasRenderingContext2D) {
+  ctx.fillStyle = 'red';
+  enemyShots.forEach(s => {
+    ctx.fillRect(s.x, s.y, s.width, s.height);
+  });
+}
+
 export function drawObstacles(
   ctx: CanvasRenderingContext2D,
   enemyImage: HTMLImageElement,
   bossImage: HTMLImageElement,
-  enemy3Image: HTMLImageElement
+  enemy3Image: HTMLImageElement,
+  bos4Image: HTMLImageElement
 ) {
   obstacles.forEach(o => {
     const img = o.isBoss
       ? bossImage
+      : o.isBos4
+      ? bos4Image
       : o.isEnemy3
       ? enemy3Image
       : enemyImage;

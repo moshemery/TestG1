@@ -20,6 +20,7 @@ Open `index.html` in a browser to play.
 - Destroy enemies to earn points. You start with three lives and gain an extra life every ten points. When all lives are lost, hit the Restart button to play again.
 - Every so often a boss ship appears. Taking it down awards a 10 point bonus.
 - Beginning with stage 3, a new enemy type appears. Roughly 30% of enemies will use the `enemy3.png` sprite and are worth 2 points when destroyed.
+- Starting in stage 1 another enemy using `bos4.png` may appear. It occasionally shoots back and is worth 15 points when destroyed.
 
 ## GitHub Pages
 
