@@ -7,8 +7,11 @@ import {
   fireMissile,
   updateObstacles,
   updateMissiles,
+  updateEnemyShots,
   drawMissiles,
+  drawEnemyShots,
   drawObstacles,
+  enemyShots,
 } from './enemy.js';
 import {
   asteroids,
@@ -87,6 +90,8 @@ const enemy3Image = new Image();
 enemy3Image.src = 'resources/enemy3.png';
 const bossImage = new Image();
 bossImage.src = 'resources/boss.png';
+const bos4Image = new Image();
+bos4Image.src = 'resources/bos4.png';
 const portalImage = new Image();
 portalImage.src = 'resources/Portal2.png';
 const asteroidImage = new Image();
@@ -358,6 +363,34 @@ function checkCollisions() {
       break;
     }
   }
+  for (let si = enemyShots.length - 1; si >= 0; si--) {
+    const s = enemyShots[si];
+    const hit =
+      spaceship.x < s.x + s.width &&
+      spaceship.x + spaceship.width > s.x &&
+      spaceship.y < s.y + s.height &&
+      spaceship.y + spaceship.height > s.y;
+    if (hit) {
+      explosionSound.currentTime = 0;
+      explosionSound.play();
+      startShipExplosion();
+      enemyShots.splice(si, 1);
+      lives--;
+      if (lives <= 0) {
+        gameOver = true;
+        canvas.style.cursor = 'pointer';
+        const storedHigh = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+        if (score > storedHigh) {
+          localStorage.setItem(HIGH_SCORE_KEY, String(score));
+          topScore = score;
+        } else {
+          topScore = storedHigh;
+        }
+        showScoreboard(score);
+      }
+      break;
+    }
+  }
   for (let mi = missiles.length - 1; mi >= 0; mi--) {
     const m = missiles[mi];
     for (let oi = obstacles.length - 1; oi >= 0; oi--) {
@@ -376,6 +409,7 @@ function checkCollisions() {
         let points = 1;
         if (o.isBoss) points += 10;
         if (o.isEnemy3) points += 1; // enemy3 gives total 2 points
+        if (o.isBos4) points += 14; // bos4 worth 15 total
         score += points;
         if (score >= nextLifeScore) {
           lives++;
@@ -439,6 +473,7 @@ function update() {
   updateObstacles(canvasHeight);
   updateAsteroids(canvasWidth, canvasHeight);
   updateMissiles();
+  updateEnemyShots(canvasHeight);
   updatePortal();
   updateExplosions();
   updateStars(stars, canvasWidth, canvasHeight, stage);
@@ -462,7 +497,8 @@ function draw() {
   }
 
   drawMissiles(ctx);
-  drawObstacles(ctx, enemyImage, bossImage, enemy3Image);
+  drawEnemyShots(ctx);
+  drawObstacles(ctx, enemyImage, bossImage, enemy3Image, bos4Image);
   drawAsteroids(ctx, asteroidImage);
   drawPortal(ctx);
   drawExplosions(ctx);
