@@ -1,6 +1,7 @@
 import { SCALE } from './config.js';
 export const obstacles = [];
 export const missiles = [];
+export const enemyShots = [];
 export function spawnObstacle(canvasWidth, spawnsUntilBoss, stage) {
     const width = 40 * SCALE;
     const height = 40 * SCALE;
@@ -16,7 +17,20 @@ export function spawnObstacle(canvasWidth, spawnsUntilBoss, stage) {
         // 30% chance to use the new enemy sprite
         isEnemy3 = Math.random() < 0.3;
     }
-    obstacles.push({ x, y: -height, width, height, speed, isBoss, isEnemy3 });
+    let isBos4 = false;
+    if (!isBoss && Math.random() < 0.1) {
+        isBos4 = true;
+    }
+    obstacles.push({
+        x,
+        y: -height,
+        width,
+        height,
+        speed,
+        isBoss,
+        isEnemy3,
+        isBos4,
+    });
 }
 export function fireMissile(ship, laserSound) {
     const width = 5 * SCALE;
@@ -31,6 +45,14 @@ export function fireMissile(ship, laserSound) {
 export function updateObstacles(canvasHeight) {
     obstacles.forEach(o => {
         o.y += o.speed;
+        if (o.isBos4 && Math.random() < 0.02) {
+            const width = 5 * SCALE;
+            const height = 10 * SCALE;
+            const x = o.x + o.width / 2 - width / 2;
+            const y = o.y + o.height;
+            const speed = 8;
+            enemyShots.push({ x, y, width, height, speed });
+        }
     });
     for (let i = obstacles.length - 1; i >= 0; i--) {
         const o = obstacles[i];
@@ -48,19 +70,36 @@ export function updateMissiles() {
         }
     }
 }
+export function updateEnemyShots(canvasHeight) {
+    for (let i = enemyShots.length - 1; i >= 0; i--) {
+        const s = enemyShots[i];
+        s.y += s.speed;
+        if (s.y > canvasHeight) {
+            enemyShots.splice(i, 1);
+        }
+    }
+}
 export function drawMissiles(ctx) {
     ctx.fillStyle = 'yellow';
     missiles.forEach(m => {
         ctx.fillRect(m.x, m.y, m.width, m.height);
     });
 }
-export function drawObstacles(ctx, enemyImage, bossImage, enemy3Image) {
+export function drawEnemyShots(ctx) {
+    ctx.fillStyle = 'red';
+    enemyShots.forEach(s => {
+        ctx.fillRect(s.x, s.y, s.width, s.height);
+    });
+}
+export function drawObstacles(ctx, enemyImage, bossImage, enemy3Image, bos4Image) {
     obstacles.forEach(o => {
         const img = o.isBoss
             ? bossImage
-            : o.isEnemy3
-                ? enemy3Image
-                : enemyImage;
+            : o.isBos4
+                ? bos4Image
+                : o.isEnemy3
+                    ? enemy3Image
+                    : enemyImage;
         ctx.drawImage(img, o.x, o.y, o.width, o.height);
     });
 }
