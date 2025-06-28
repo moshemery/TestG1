@@ -9,6 +9,21 @@ export const prefixStory = [
 ];
 const DEFAULT_ENEMY_NAME = 'the enemy forces';
 import { isMobile } from './config.js';
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const clickCtx = AudioCtx ? new AudioCtx() : null;
+function playClick() {
+    if (!clickCtx)
+        return;
+    const osc = clickCtx.createOscillator();
+    const gain = clickCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = 800;
+    osc.connect(gain);
+    gain.connect(clickCtx.destination);
+    gain.gain.setValueAtTime(0.1, clickCtx.currentTime);
+    osc.start();
+    osc.stop(clickCtx.currentTime + 0.05);
+}
 export let prefixActive = false;
 export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEMY_NAME) {
     const container = document.getElementById('prefix-container');
@@ -23,6 +38,23 @@ export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEM
     container.style.display = 'block';
     if (commandImg)
         commandImg.style.opacity = '1';
+    const typeLine = (text, done) => {
+        const lineEl = document.createElement('div');
+        container.appendChild(lineEl);
+        let i = 0;
+        const typeNext = () => {
+            if (i < text.length) {
+                lineEl.textContent += text[i];
+                playClick();
+                i++;
+                setTimeout(typeNext, 50);
+            }
+            else {
+                setTimeout(done, 1000);
+            }
+        };
+        typeNext();
+    };
     const next = () => {
         if (index >= prefixStory.length) {
             if (!isMobile) {
@@ -53,11 +85,10 @@ export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEM
         const lineText = prefixStory[index].text
             .replace('{{playerName}}', playerName)
             .replace('{{enemyName}}', enemyName);
-        const lineEl = document.createElement('div');
-        lineEl.textContent = lineText;
-        container.appendChild(lineEl);
-        index++;
-        setTimeout(next, 3000);
+        typeLine(lineText, () => {
+            index++;
+            next();
+        });
     };
     setTimeout(next, 500);
 }
