@@ -25,6 +25,7 @@ export function showPrefixStory(
   enemyName: string = DEFAULT_ENEMY_NAME
 ) {
   const container = document.getElementById('prefix-container') as HTMLDivElement;
+  const commandImg = document.getElementById('command-image') as HTMLImageElement | null;
   if (!container) {
     onComplete();
     return;
@@ -35,6 +36,7 @@ export function showPrefixStory(
   let index = 0;
   container.innerHTML = '';
   container.style.display = 'block';
+  if (commandImg) commandImg.style.opacity = '1';
 
   const next = () => {
     if (index >= prefixStory.length) {
@@ -47,6 +49,7 @@ export function showPrefixStory(
             window.removeEventListener('keydown', startHandler);
             container.style.display = 'none';
             prefixActive = false;
+            if (commandImg) commandImg.style.opacity = '0';
             onComplete();
           }
         };
@@ -54,6 +57,7 @@ export function showPrefixStory(
       } else {
         container.style.display = 'none';
         prefixActive = false;
+        if (commandImg) commandImg.style.opacity = '0';
         onComplete();
       }
       return;
@@ -68,5 +72,5 @@ export function showPrefixStory(
     setTimeout(next, 3000);
   };
 
-  next();
+  setTimeout(next, 500);
 }
