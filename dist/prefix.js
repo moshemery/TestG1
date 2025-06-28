@@ -12,6 +12,7 @@ import { isMobile } from './config.js';
 export let prefixActive = false;
 export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEMY_NAME) {
     const container = document.getElementById('prefix-container');
+    const commandImg = document.getElementById('command-image');
     if (!container) {
         onComplete();
         return;
@@ -20,6 +21,8 @@ export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEM
     let index = 0;
     container.innerHTML = '';
     container.style.display = 'block';
+    if (commandImg)
+        commandImg.style.opacity = '1';
     const next = () => {
         if (index >= prefixStory.length) {
             if (!isMobile) {
@@ -31,6 +34,8 @@ export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEM
                         window.removeEventListener('keydown', startHandler);
                         container.style.display = 'none';
                         prefixActive = false;
+                        if (commandImg)
+                            commandImg.style.opacity = '0';
                         onComplete();
                     }
                 };
@@ -39,6 +44,8 @@ export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEM
             else {
                 container.style.display = 'none';
                 prefixActive = false;
+                if (commandImg)
+                    commandImg.style.opacity = '0';
                 onComplete();
             }
             return;
@@ -52,5 +59,5 @@ export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEM
         index++;
         setTimeout(next, 3000);
     };
-    next();
+    setTimeout(next, 500);
 }
