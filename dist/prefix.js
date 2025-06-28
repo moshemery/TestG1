@@ -9,20 +9,14 @@ export const prefixStory = [
 ];
 const DEFAULT_ENEMY_NAME = 'the enemy forces';
 import { isMobile } from './config.js';
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-const clickCtx = AudioCtx ? new AudioCtx() : null;
+const clickAudioSrc = 'resources/soundOfClick.mp3';
 function playClick() {
-    if (!clickCtx)
-        return;
-    const osc = clickCtx.createOscillator();
-    const gain = clickCtx.createGain();
-    osc.type = 'square';
-    osc.frequency.value = 800;
-    osc.connect(gain);
-    gain.connect(clickCtx.destination);
-    gain.gain.setValueAtTime(0.1, clickCtx.currentTime);
-    osc.start();
-    osc.stop(clickCtx.currentTime + 0.05);
+    const audio = new Audio(clickAudioSrc);
+    audio.play();
+    setTimeout(() => {
+        audio.pause();
+        audio.currentTime = 0;
+    }, 100);
 }
 export let prefixActive = false;
 export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEMY_NAME) {
