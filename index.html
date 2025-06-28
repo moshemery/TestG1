@@ -33,6 +33,16 @@
       display: none;
       z-index: 10;
     }
+    #command-image {
+      position: absolute;
+      right: 10%;
+      bottom: 10%;
+      width: 200px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: 9;
+    }
   </style>
 </head>
 <body>
@@ -45,6 +55,7 @@
     </form>
   </div>
   <div id="prefix-container"></div>
+  <img id="command-image" src="resources/commander.png" alt="Commander" />
     <div id="scoreboard" style="position:absolute; top:10%; left:50%; transform:translateX(-50%); padding:20px; display:none;">
       <table id="score-table"></table>
     </div>
