@@ -17,6 +17,8 @@ const DEFAULT_ENEMY_NAME = 'the enemy forces';
 
 import { isMobile } from './config.js';
 
+export let prefixActive = false;
+
 export function showPrefixStory(
   playerName: string,
   onComplete: () => void,
@@ -27,6 +29,8 @@ export function showPrefixStory(
     onComplete();
     return;
   }
+
+  prefixActive = true;
 
   let index = 0;
   container.innerHTML = '';
@@ -42,12 +46,14 @@ export function showPrefixStory(
           if (e.key === 'Enter') {
             window.removeEventListener('keydown', startHandler);
             container.style.display = 'none';
+            prefixActive = false;
             onComplete();
           }
         };
         window.addEventListener('keydown', startHandler);
       } else {
         container.style.display = 'none';
+        prefixActive = false;
         onComplete();
       }
       return;
