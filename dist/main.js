@@ -5,6 +5,7 @@ import { asteroids, spawnAsteroid, updateAsteroids, drawAsteroids, } from './ast
 import { scoreboard, scoreboardRight, sendScoreToAirtable, fetchTopScores, displayScores, } from './scoreboard.js';
 import { drawTopInfo } from './topInfo.js';
 import { vrMode, SCALE } from './config.js';
+import { showPrefixStory } from './prefix.js';
 const canvas = document.getElementById('game');
 const nameModal = document.getElementById('name-modal');
 const nameForm = document.getElementById('name-form');
@@ -547,6 +548,12 @@ if (!playerName) {
     paused = true;
     nameModal.style.display = 'block';
 }
+else {
+    paused = true;
+    showPrefixStory(playerName, () => {
+        paused = false;
+    });
+}
 nameForm.addEventListener('submit', e => {
     e.preventDefault();
     const name = nameInput.value.trim();
@@ -555,6 +562,9 @@ nameForm.addEventListener('submit', e => {
         localStorage.setItem(PLAYER_NAME_KEY, name);
         topScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
         nameModal.style.display = 'none';
-        paused = false;
+        paused = true;
+        showPrefixStory(playerName, () => {
+            paused = false;
+        });
     }
 });
