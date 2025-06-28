@@ -29,6 +29,7 @@ import {
 import { drawTopInfo } from './topInfo.js';
 import { vrMode, SCALE } from './config.js';
 import { showPrefixStory, prefixActive } from './prefix.js';
+import { showLobby } from './lobby.js';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const nameModal = document.getElementById('name-modal') as HTMLDivElement;
@@ -644,8 +645,10 @@ if (!playerName) {
   nameModal.style.display = 'block';
 } else {
   paused = true;
-  showPrefixStory(playerName, () => {
-    paused = false;
+  showLobby(playerName!, () => {
+    showPrefixStory(playerName!, () => {
+      paused = false;
+    });
   });
 }
 
@@ -658,8 +661,10 @@ nameForm.addEventListener('submit', e => {
     topScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
     nameModal.style.display = 'none';
     paused = true;
-    showPrefixStory(playerName, () => {
-      paused = false;
+    showLobby(playerName!, () => {
+      showPrefixStory(playerName!, () => {
+        paused = false;
+      });
     });
   }
 });
