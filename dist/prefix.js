@@ -9,12 +9,14 @@ export const prefixStory = [
 ];
 const DEFAULT_ENEMY_NAME = 'the enemy forces';
 import { isMobile } from './config.js';
+export let prefixActive = false;
 export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEMY_NAME) {
     const container = document.getElementById('prefix-container');
     if (!container) {
         onComplete();
         return;
     }
+    prefixActive = true;
     let index = 0;
     container.innerHTML = '';
     container.style.display = 'block';
@@ -28,6 +30,7 @@ export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEM
                     if (e.key === 'Enter') {
                         window.removeEventListener('keydown', startHandler);
                         container.style.display = 'none';
+                        prefixActive = false;
                         onComplete();
                     }
                 };
@@ -35,6 +38,7 @@ export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEM
             }
             else {
                 container.style.display = 'none';
+                prefixActive = false;
                 onComplete();
             }
             return;
