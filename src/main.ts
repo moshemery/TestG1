@@ -28,6 +28,7 @@ import {
 } from './scoreboard.js';
 import { drawTopInfo } from './topInfo.js';
 import { vrMode, SCALE } from './config.js';
+import { showPrefixStory } from './prefix.js';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const nameModal = document.getElementById('name-modal') as HTMLDivElement;
@@ -641,6 +642,11 @@ window.addEventListener('deviceorientation', e => {
 if (!playerName) {
   paused = true;
   nameModal.style.display = 'block';
+} else {
+  paused = true;
+  showPrefixStory(playerName, () => {
+    paused = false;
+  });
 }
 
 nameForm.addEventListener('submit', e => {
@@ -651,6 +657,9 @@ nameForm.addEventListener('submit', e => {
     localStorage.setItem(PLAYER_NAME_KEY, name);
     topScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
     nameModal.style.display = 'none';
-    paused = false;
+    paused = true;
+    showPrefixStory(playerName, () => {
+      paused = false;
+    });
   }
 });
