@@ -516,7 +516,7 @@ function draw() {
   if (paused && !gameOver) {
     ctx.font = '48px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Paused', canvasWidth / 2, canvasHeight / 2);
+    ctx.fillText('Paused', canvasWidth / 2, canvasHeight * 0.2);
   }
 
   if (gameOver) {
