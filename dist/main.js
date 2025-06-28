@@ -6,6 +6,7 @@ import { scoreboard, scoreboardRight, sendScoreToAirtable, fetchTopScores, displ
 import { drawTopInfo } from './topInfo.js';
 import { vrMode, SCALE } from './config.js';
 import { showPrefixStory, prefixActive } from './prefix.js';
+import { showLobby } from './lobby.js';
 const canvas = document.getElementById('game');
 const nameModal = document.getElementById('name-modal');
 const nameForm = document.getElementById('name-form');
@@ -550,8 +551,10 @@ if (!playerName) {
 }
 else {
     paused = true;
-    showPrefixStory(playerName, () => {
-        paused = false;
+    showLobby(playerName, () => {
+        showPrefixStory(playerName, () => {
+            paused = false;
+        });
     });
 }
 nameForm.addEventListener('submit', e => {
@@ -563,8 +566,10 @@ nameForm.addEventListener('submit', e => {
         topScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
         nameModal.style.display = 'none';
         paused = true;
-        showPrefixStory(playerName, () => {
-            paused = false;
+        showLobby(playerName, () => {
+            showPrefixStory(playerName, () => {
+                paused = false;
+            });
         });
     }
 });
