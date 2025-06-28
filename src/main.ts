@@ -28,7 +28,7 @@ import {
 } from './scoreboard.js';
 import { drawTopInfo } from './topInfo.js';
 import { vrMode, SCALE } from './config.js';
-import { showPrefixStory } from './prefix.js';
+import { showPrefixStory, prefixActive } from './prefix.js';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const nameModal = document.getElementById('name-modal') as HTMLDivElement;
@@ -513,7 +513,7 @@ function draw() {
     ctx.fillText(`Stage ${stage + 1}`, canvasWidth / 2, canvasHeight / 2);
   }
 
-  if (paused && !gameOver) {
+  if (paused && !gameOver && !prefixActive) {
     ctx.font = '48px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Paused', canvasWidth / 2, canvasHeight * 0.2);
