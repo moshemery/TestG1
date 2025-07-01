@@ -63,6 +63,10 @@ const portalImage = new Image();
 portalImage.src = 'resources/Portal2.png';
 const asteroidImage = new Image();
 asteroidImage.src = 'resources/stroid2.jpeg';
+const background2Image = new Image();
+background2Image.src = 'resources/background2.png';
+const backgroundImage = new Image();
+backgroundImage.src = 'resources/background.png';
 const explosionSound = new Audio('resources/explosion-80108.mp3');
 const laserSound = new Audio('resources/laser-zap-90575.mp3');
 const hitSound = new Audio('resources/explosion-322491.mp3');
@@ -407,8 +411,16 @@ function update() {
     checkPortalCollision();
 }
 function draw() {
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    if (stage >= 4) {
+        ctx.drawImage(backgroundImage, 0, 0, canvasWidth, canvasHeight);
+    }
+    else if (stage >= 3) {
+        ctx.drawImage(background2Image, 0, 0, canvasWidth, canvasHeight);
+    }
+    else {
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
     drawStars(ctx, stars);
     if (!freezeEnvironment) {
         drawSpaceship(ctx, spaceship, friendImage);
