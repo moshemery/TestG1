@@ -488,6 +488,8 @@ function update() {
 }
 
 function draw() {
+  ctx.save();
+  ctx.globalAlpha = 0.3;
   if (stage >= 4) {
     ctx.drawImage(backgroundImage, 0, 0, canvasWidth, canvasHeight);
   } else if (stage >= 3) {
@@ -496,6 +498,7 @@ function draw() {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
+  ctx.restore();
 
   drawStars(ctx, stars);
 
