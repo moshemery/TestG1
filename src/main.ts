@@ -94,6 +94,8 @@ const bossImage = new Image();
 bossImage.src = 'resources/boss.png';
 const bos4Image = new Image();
 bos4Image.src = 'resources/bos4.png';
+const boss5Image = new Image();
+boss5Image.src = 'resources/boss5.png';
 const portalImage = new Image();
 portalImage.src = 'resources/Portal2.png';
 const asteroidImage = new Image();
@@ -410,16 +412,20 @@ function checkCollisions() {
         hitSound.currentTime = 0;
         hitSound.play();
         spawnExplosion(o.x + o.width / 2, o.y + o.height / 2);
-        obstacles.splice(oi, 1);
         missiles.splice(mi, 1);
-        let points = 1;
-        if (o.isBoss) points += 10;
-        if (o.isEnemy3) points += 1; // enemy3 gives total 2 points
-        if (o.isBos4) points += 14; // bos4 worth 15 total
-        score += points;
-        if (score >= nextLifeScore) {
-          lives++;
-          nextLifeScore += 10;
+        o.health--;
+        if (o.health <= 0) {
+          obstacles.splice(oi, 1);
+          let points = 1;
+          if (o.isBoss) points += 10;
+          if (o.isEnemy3) points += 1; // enemy3 gives total 2 points
+          if (o.isBos4) points += 14; // bos4 worth 15 total
+          if (o.isBoss5) points += 4; // boss5 worth 5 total
+          score += points;
+          if (score >= nextLifeScore) {
+            lives++;
+            nextLifeScore += 10;
+          }
         }
         break;
       }
@@ -513,7 +519,7 @@ function draw() {
 
   drawMissiles(ctx);
   drawEnemyShots(ctx);
-  drawObstacles(ctx, enemyImage, bossImage, enemy3Image, bos4Image);
+  drawObstacles(ctx, enemyImage, bossImage, enemy3Image, bos4Image, boss5Image);
   drawAsteroids(ctx, asteroidImage);
   drawPortal(ctx);
   drawExplosions(ctx);
