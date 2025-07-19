@@ -21,6 +21,9 @@ Open `index.html` in a browser to play.
 - Every so often a boss ship appears. Taking it down awards a 10 point bonus.
 - Beginning with stage 3, a new enemy type appears. Roughly 30% of enemies will use the `enemy3.png` sprite and are worth 2 points when destroyed.
 - Starting in stage 1 another enemy using `bos4.png` may appear. It occasionally shoots back and is worth 15 points when destroyed.
+- From stage 3 another tough ship may show up using `boss5.png`. It appears far
+  less frequently (about 20% as often as normal enemies), requires two hits to
+  destroy and awards 5 points.
 
 ## GitHub Pages
 

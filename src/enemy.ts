@@ -12,6 +12,10 @@ export interface Obstacle {
   isEnemy3?: boolean;
   /** New enemy type that appears from stage 1 */
   isBos4?: boolean;
+  /** Enemy that requires two hits starting in stage 3 */
+  isBoss5?: boolean;
+  /** Remaining health points */
+  health: number;
 }
 
 export interface Missile {
@@ -49,6 +53,15 @@ export function spawnObstacle(
   if (!isBoss && Math.random() < 0.1) {
     isBos4 = true;
   }
+  let isBoss5 = false;
+  let health = 1;
+  if (!isBoss && stage >= 3 && Math.random() < 0.2) {
+    isBoss5 = true;
+    health = 2;
+    // When this enemy appears, do not treat it as other special types
+    isEnemy3 = false;
+    isBos4 = false;
+  }
   obstacles.push({
     x,
     y: -height,
@@ -58,6 +71,8 @@ export function spawnObstacle(
     isBoss,
     isEnemy3,
     isBos4,
+    isBoss5,
+    health,
   });
 }
 
@@ -131,11 +146,14 @@ export function drawObstacles(
   enemyImage: HTMLImageElement,
   bossImage: HTMLImageElement,
   enemy3Image: HTMLImageElement,
-  bos4Image: HTMLImageElement
+  bos4Image: HTMLImageElement,
+  boss5Image: HTMLImageElement
 ) {
   obstacles.forEach(o => {
     const img = o.isBoss
       ? bossImage
+      : o.isBoss5
+      ? boss5Image
       : o.isBos4
       ? bos4Image
       : o.isEnemy3
