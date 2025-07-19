@@ -21,7 +21,7 @@ interface DemoAsteroid {
 const enemyImage = new Image();
 enemyImage.src = 'resources/enemy.png';
 const asteroidImage = new Image();
-asteroidImage.src = 'resources/stroid2.jpeg';
+asteroidImage.src = 'resources/stroid2.png';
 
 let canvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
