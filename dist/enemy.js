@@ -21,6 +21,15 @@ export function spawnObstacle(canvasWidth, spawnsUntilBoss, stage) {
     if (!isBoss && Math.random() < 0.1) {
         isBos4 = true;
     }
+    let isBoss5 = false;
+    let health = 1;
+    if (!isBoss && stage >= 3 && Math.random() < 0.2) {
+        isBoss5 = true;
+        health = 2;
+        // When this enemy appears, do not treat it as other special types
+        isEnemy3 = false;
+        isBos4 = false;
+    }
     obstacles.push({
         x,
         y: -height,
@@ -30,6 +39,8 @@ export function spawnObstacle(canvasWidth, spawnsUntilBoss, stage) {
         isBoss,
         isEnemy3,
         isBos4,
+        isBoss5,
+        health,
     });
 }
 export function fireMissile(ship, laserSound) {
@@ -91,15 +102,17 @@ export function drawEnemyShots(ctx) {
         ctx.fillRect(s.x, s.y, s.width, s.height);
     });
 }
-export function drawObstacles(ctx, enemyImage, bossImage, enemy3Image, bos4Image) {
+export function drawObstacles(ctx, enemyImage, bossImage, enemy3Image, bos4Image, boss5Image) {
     obstacles.forEach(o => {
         const img = o.isBoss
             ? bossImage
-            : o.isBos4
-                ? bos4Image
-                : o.isEnemy3
-                    ? enemy3Image
-                    : enemyImage;
+            : o.isBoss5
+                ? boss5Image
+                : o.isBos4
+                    ? bos4Image
+                    : o.isEnemy3
+                        ? enemy3Image
+                        : enemyImage;
         ctx.drawImage(img, o.x, o.y, o.width, o.height);
     });
 }
