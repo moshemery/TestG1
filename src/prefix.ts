@@ -47,7 +47,9 @@ export function showPrefixStory(
   let index = 0;
   container.innerHTML = '';
   container.style.display = 'block';
-  if (commandImg) commandImg.style.opacity = '1';
+  // Show the commander image but keep it mostly transparent so it doesn't
+  // distract from the on-screen text.
+  if (commandImg) commandImg.style.opacity = '0.2';
 
   const typeLine = (text: string, done: () => void) => {
     const lineEl = document.createElement('div');
