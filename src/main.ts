@@ -137,6 +137,7 @@ interface Portal {
 let portal: Portal | null = null;
 let nextPortalScore = portalInterval;
 let levelTransition = false;
+let levelTimerId: number | null = null;
 
 interface ExplosionPiece {
   x: number;
@@ -168,7 +169,13 @@ function resetGame() {
   asteroids.length = 0;
   shipPieces.length = 0;
   enemyExplosions.length = 0;
+  if (levelTimerId !== null) {
+    clearTimeout(levelTimerId);
+    levelTimerId = null;
+  }
   freezeEnvironment = false;
+  levelTransition = false;
+  portal = null;
   stage = 1;
   stars.splice(0, stars.length);
   for (let i = 0; i < 100; i++) {
@@ -205,6 +212,7 @@ function startNextLevel() {
   freezeEnvironment = false;
   levelTransition = false;
   portal = null;
+  levelTimerId = null;
   nextPortalScore += portalInterval;
 }
 
@@ -310,7 +318,7 @@ function checkPortalCollision() {
     levelTransition = true;
     freezeEnvironment = true;
     portal = null;
-    setTimeout(startNextLevel, 5000);
+    levelTimerId = window.setTimeout(startNextLevel, 5000);
   }
 }
 
@@ -330,6 +338,10 @@ function checkCollisions() {
       lives--;
       if (lives <= 0) {
         gameOver = true;
+        if (levelTimerId !== null) {
+          clearTimeout(levelTimerId);
+          levelTimerId = null;
+        }
         canvas.style.cursor = 'pointer';
         const storedHigh = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
         if (score > storedHigh) {
@@ -358,6 +370,10 @@ function checkCollisions() {
       lives--;
       if (lives <= 0) {
         gameOver = true;
+        if (levelTimerId !== null) {
+          clearTimeout(levelTimerId);
+          levelTimerId = null;
+        }
         canvas.style.cursor = 'pointer';
         const storedHigh = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
         if (score > storedHigh) {
@@ -386,6 +402,10 @@ function checkCollisions() {
       lives--;
       if (lives <= 0) {
         gameOver = true;
+        if (levelTimerId !== null) {
+          clearTimeout(levelTimerId);
+          levelTimerId = null;
+        }
         canvas.style.cursor = 'pointer';
         const storedHigh = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
         if (score > storedHigh) {
