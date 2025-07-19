@@ -30,8 +30,10 @@ export function showPrefixStory(playerName, onComplete, enemyName = DEFAULT_ENEM
     let index = 0;
     container.innerHTML = '';
     container.style.display = 'block';
+    // Show the commander image but keep it mostly transparent so it doesn't
+    // distract from the on-screen text.
     if (commandImg)
-        commandImg.style.opacity = '1';
+        commandImg.style.opacity = '0.2';
     const typeLine = (text, done) => {
         const lineEl = document.createElement('div');
         container.appendChild(lineEl);
