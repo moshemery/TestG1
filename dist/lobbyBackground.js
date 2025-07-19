@@ -3,7 +3,7 @@ import { SCALE } from './config.js';
 const enemyImage = new Image();
 enemyImage.src = 'resources/enemy.png';
 const asteroidImage = new Image();
-asteroidImage.src = 'resources/stroid2.jpeg';
+asteroidImage.src = 'resources/stroid2.png';
 let canvas = null;
 let ctx = null;
 let canvasWidth = 0;
