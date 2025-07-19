@@ -69,6 +69,18 @@ const background2Image = new Image();
 background2Image.src = 'resources/background2.png';
 const backgroundImage = new Image();
 backgroundImage.src = 'resources/background.png';
+// Stage-specific background images beginning at stage 3. The images are named
+// bc_1.png, bc_2.png, bc_3.png, bc_4.png, bc_5.png, bc_5.5.png, bc_6.png and
+// bc_7.png. They are loaded in sorted order so that stage 3 uses the first
+// image, stage 4 uses the second and so on. Stages beyond the number of images
+// reuse the last one.
+const bcBackgrounds = [];
+['bc_1.png', 'bc_2.png', 'bc_3.png', 'bc_4.png', 'bc_5.png', 'bc_5.5.png', 'bc_6.png', 'bc_7.png']
+    .forEach(name => {
+    const img = new Image();
+    img.src = `resources/${name}`;
+    bcBackgrounds.push(img);
+});
 const explosionSound = new Audio('resources/explosion-80108.mp3');
 const laserSound = new Audio('resources/laser-zap-90575.mp3');
 const hitSound = new Audio('resources/explosion-322491.mp3');
@@ -439,12 +451,13 @@ function update() {
 }
 function draw() {
     ctx.save();
-    ctx.globalAlpha = 0.3;
-    if (stage >= 4) {
-        ctx.drawImage(backgroundImage, 0, 0, canvasWidth, canvasHeight);
-    }
-    else if (stage >= 3) {
-        ctx.drawImage(background2Image, 0, 0, canvasWidth, canvasHeight);
+    if (stage >= 3) {
+        // Use stage specific backgrounds starting from stage 3. The last image is
+        // reused when the stage exceeds the number of provided backgrounds.
+        ctx.globalAlpha = 0.2; // 80% transparent
+        const index = Math.min(stage - 3, bcBackgrounds.length - 1);
+        const img = bcBackgrounds[index];
+        ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
     }
     else {
         ctx.fillStyle = 'black';
