@@ -454,7 +454,12 @@ function draw() {
     if (stage >= 3) {
         // Use stage specific backgrounds starting from stage 3. The last image is
         // reused when the stage exceeds the number of provided backgrounds.
-        ctx.globalAlpha = 0.03; // 97% transparent
+        // Fill the canvas first so the background doesn't accumulate opacity over
+        // successive frames, then draw the image at a very low opacity to make it
+        // appear as a distant shadow.
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        ctx.globalAlpha = 0.01; // 99% transparent
         const index = Math.min(stage - 3, bcBackgrounds.length - 1);
         const img = bcBackgrounds[index];
         ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
