@@ -536,7 +536,7 @@ function draw() {
     // appear as a distant shadow.
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    ctx.globalAlpha = 0.01; // 99% transparent
+    ctx.globalAlpha = 0.10; // 99% transparent
     const index = Math.min(stage - 3, bcBackgrounds.length - 1);
     const img = bcBackgrounds[index];
     ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
