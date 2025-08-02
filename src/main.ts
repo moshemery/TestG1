@@ -531,7 +531,7 @@ function draw() {
   if (stage >= 3) {
     // Use stage specific backgrounds starting from stage 3. The last image is
     // reused when the stage exceeds the number of provided backgrounds.
-    ctx.globalAlpha = 0.2; // 80% transparent
+    ctx.globalAlpha = 0.03; // 97% transparent
     const index = Math.min(stage - 3, bcBackgrounds.length - 1);
     const img = bcBackgrounds[index];
     ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
