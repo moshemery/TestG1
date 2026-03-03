@@ -121,6 +121,8 @@ const bcBackgrounds: HTMLImageElement[] = [];
 const explosionSound = new Audio('resources/explosion-80108.mp3');
 const laserSound = new Audio('resources/laser-zap-90575.mp3');
 const hitSound = new Audio('resources/explosion-322491.mp3');
+const soundtrack = new Audio('resources/Voidfall_Anomaly.mp3');
+soundtrack.loop = true;
 
 const spaceship = new Spaceship(canvasWidth, canvasHeight);
 // Keyboard controls move the ship twice as far per key press
@@ -176,6 +178,22 @@ let freezeEnvironment = false;
 
 const spawnsUntilBoss = { value: Math.floor(Math.random() * 11) + 20 };
 
+function syncSoundtrackPlayback() {
+  const shouldPlay = !paused && !gameOver && !prefixActive;
+  if (shouldPlay) {
+    if (soundtrack.paused) {
+      soundtrack.play().catch(() => {
+        // Ignore autoplay blocks until the user interacts with the page.
+      });
+    }
+    return;
+  }
+
+  if (!soundtrack.paused) {
+    soundtrack.pause();
+  }
+}
+
 function resetGame() {
   obstacles.length = 0;
   missiles.length = 0;
@@ -207,6 +225,8 @@ function resetGame() {
   scoreboard.style.display = 'none';
   if (scoreboardRight) scoreboardRight.style.display = 'none';
   canvas.style.cursor = 'default';
+  soundtrack.currentTime = 0;
+  syncSoundtrackPlayback();
 }
 
 function startNextLevel() {
@@ -624,6 +644,7 @@ function draw() {
 }
 
 function loop() {
+  syncSoundtrackPlayback();
   update();
   draw();
   requestAnimationFrame(loop);
@@ -635,6 +656,7 @@ window.addEventListener('keydown', e => {
   if (gameOver) return;
   if (e.key === 'Enter') {
     paused = !paused;
+    syncSoundtrackPlayback();
     return;
   }
   if (paused) return;
@@ -702,11 +724,14 @@ window.addEventListener('deviceorientation', e => {
 if (!playerName) {
   paused = true;
   nameModal.style.display = 'block';
+  syncSoundtrackPlayback();
 } else {
   paused = true;
+  syncSoundtrackPlayback();
   showLobby(playerName!, () => {
     showPrefixStory(playerName!, () => {
       paused = false;
+      syncSoundtrackPlayback();
     });
   });
 }
@@ -720,9 +745,11 @@ nameForm.addEventListener('submit', e => {
     topScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
     nameModal.style.display = 'none';
     paused = true;
+    syncSoundtrackPlayback();
     showLobby(playerName!, () => {
       showPrefixStory(playerName!, () => {
         paused = false;
+        syncSoundtrackPlayback();
       });
     });
   }
